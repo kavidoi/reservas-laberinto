@@ -1,38 +1,60 @@
 # netlify.toml
+# Configuration for Netlify deployment for Reservas Laberinto
+# Last Updated: Monday, April 7, 2025 at 12:24:30 AM -04 (Vitacura, Santiago Metropolitan Region, Chile)
 
+# Build settings applicable to all contexts
 [build]
+  # Command to run during build (installs function dependencies)
   command = "npm install"
+  # Directory containing Netlify functions relative to the base directory
   functions = "functions"
+  # Directory containing static site assets to deploy relative to the base directory
   publish = "public"
-  # ADD THIS SECTION (or add NODE_VERSION to existing environment section)
+  # Environment variables for the build process itself
   [build.environment]
-    NODE_VERSION = "18" # Specifies Node.js version 18 LTS
+    # Specify the Node.js version for the build environment and functions
+    NODE_VERSION = "18"
 
-# Environment variables specific to the production context
+# Environment variables specific only to the production context
+# Secrets like API keys should ideally be set ONLY in the Netlify UI for security
 [context.production.environment]
-  AIRTABLE_TABLE_RESERVAS = "tblJSKGb4IBeyUwyo"
-  AIRTABLE_TABLE_EXPERIENCES = "tblaBc1QhlksnV5Qb"
-  AIRTABLE_TABLE_FOOD = "tblz3fbgTFnqfCGi9"
-  # Your Sentry DSN etc...
-  # SENTRY_DSN = "YOUR_SENTRY_DSN_HERE" # Set via Netlify UI
+  # --- Airtable Configuration ---
+  # Set AIRTABLE_API_KEY in the Netlify UI (Site settings > Build & deploy > Environment)
+  # AIRTABLE_API_KEY = "value-set-in-netlify-ui"
+
+  # Base and Table IDs (Table IDs are generally safe here, Base ID maybe less so but okay)
+  AIRTABLE_TABLE_RESERVAS = "tblJSKGb4IBeyUwyo"     # Table for main submissions
+  AIRTABLE_TABLE_EXPERIENCES = "tblaBc1QhlksnV5Qb"  # Table for experiences dropdown
+  AIRTABLE_TABLE_FOOD = "tblz3fbgTFnqfCGi9"         # Table for food options dropdown
+
+  # --- Other Variables ---
+  # Set SENTRY_DSN in Netlify UI if using Sentry
+  # SENTRY_DSN = "value-set-in-netlify-ui"
+  # NODE_ENV = "production" # Can set this here or in UI
 
 # --- Custom Headers ---
 [[headers]]
+  # Apply these headers to all pages served
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net; img-src 'self' https://images.fillout.com data:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self' *.sentry.io;"
+    # Content Security Policy - Allows self, bootstrap CDN, data: URIs, Sentry
+    # Updated img-src to remove fillout.com now that logo is local
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self' *.sentry.io;"
+    # Prevents MIME type sniffing
     X-Content-Type-Options = "nosniff"
+    # Controls how much referrer info is sent
     Referrer-Policy = "strict-origin-when-cross-origin"
+    # Optional: Add other security headers like X-Frame-Options 'DENY', Strict-Transport-Security etc.
 
-
-# Redirects/Rewrites
+# --- Redirects/Rewrites ---
 [[redirects]]
   # Map requests from the user-friendly /api/* path...
   from = "/api/*"
   # ...to the actual Netlify function location.
-  # The ':splat' captures everything after /api/ and passes it on.
-  # Status 200 makes it an internal rewrite (proxy) instead of a browser redirect.
   to = "/.netlify/functions/:splat"
+  # Status 200 makes it an internal rewrite (proxy).
   status = 200
-  # Optional: Force it if other rules might interfere, unlikely needed here
-  # force = true
+  # force = true # Usually not needed unless complex rules conflict
+
+# Note: The [[plugins]] section for rate-limit was removed as it caused build errors.
+# Consider using Netlify Edge Functions for rate limiting if needed later.
