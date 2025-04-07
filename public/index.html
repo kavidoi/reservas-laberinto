@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -29,7 +30,6 @@
                     <select class="form-select mb-2" id="widget-oY8v">
                         <option value="" selected disabled>Selecciona...</option>
                     </select>
-                    {/* UPDATED onClick for Solicitar button */}
                     <button type="button" class="btn btn-secondary btn-sm" onclick="goToStep('step-request-start');">
                         Solicitar otra fecha
                     </button>
@@ -37,13 +37,23 @@
 
                 <hr id="widget-2mrE">
 
-                {/* ... rest of step q1GJ ... */}
-                 <div class="form-check form-switch mb-3">...</div>
-                 <div id="widget-3duJ-container" class="mb-3 d-none">...</div>
-                 <div class="d-flex justify-content-end mt-4">...</div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="widget-grSj">
+                    <label class="form-check-label" for="widget-grSj">Prefiero activar una experiencia exclusiva para mi grupo.</label>
+                </div>
+
+                <div id="widget-3duJ-container" class="mb-3 d-none">
+                     <label class="form-label fw-bold">Experiencia Exclusiva</label>
+                     <p>Agenda tu experiencia exclusiva según disponibilidad.</p>
+                     <button type="button" class="btn btn-outline-primary" onclick="goToStep('subform-scheduling'); document.getElementById('scheduling-title').textContent='Agendar Experiencia Exclusiva';">Agendar Experiencia Exclusiva</button>
+                     <small class="form-text d-block mt-1">Agendado: <span id="subform-3duJ-status">No</span></small>
+                 </div>
+
+                 <div class="d-flex justify-content-end mt-4">
+                    <button type="button" class="btn btn-primary" onclick="goToStep('step-bSoz')">Continuar la reserva</button>
+                </div>
             </div>
 
-            {/* --- NEW STEP: Request Date - Start --- */}
             <div id="step-request-start" class="form-step d-none">
                 <h2>Solicitar Nueva Fecha Grupal</h2>
                 <hr>
@@ -51,7 +61,6 @@
                     <label for="request-experience-type" class="form-label fw-bold">Tipo de Experiencia Grupal</label>
                     <select class="form-select" id="request-experience-type" required>
                         <option value="" selected disabled>Cargando tipos...</option>
-                        {/* Options populated by populateRequestExperienceTypes() */}
                     </select>
                     <div class="invalid-feedback">Por favor selecciona un tipo de experiencia.</div>
                 </div>
@@ -64,13 +73,11 @@
                     </ul>
                 </div>
                  <div class="d-flex justify-content-between mt-4">
-                    {/* Go back to the main intro step */}
                     <button type="button" class="btn btn-outline-secondary" onclick="goToStep('step-q1GJ')">Cancelar Solicitud</button>
                     <button type="button" class="btn btn-primary" onclick="goToStep('step-request-select-datetime')">Seleccionar Fecha/Hora</button>
                 </div>
             </div>
 
-            {/* --- NEW STEP: Request Date - Select Date/Time --- */}
             <div id="step-request-select-datetime" class="form-step d-none">
                 <h2>Seleccionar Fecha y Hora Sugerida</h2>
                 <hr>
@@ -78,7 +85,6 @@
                  <div class="row g-3">
                     <div class="col-md-6 mb-3">
                         <label for="request-date" class="form-label fw-bold">Fecha Sugerida<span class="text-danger">*</span></label>
-                        {/* Input will be enhanced by Flatpickr */}
                         <input type="text" class="form-control" id="request-date" placeholder="Selecciona una fecha..." required>
                          <div class="invalid-feedback">Por favor selecciona una fecha válida.</div>
                     </div>
@@ -89,7 +95,6 @@
                          <div class="invalid-feedback">Por favor selecciona una hora válida.</div>
                     </div>
                  </div>
-                 {/* Optional: Add inputs for expected group size or comments specific to the request */}
                  <div class="mb-3">
                     <label for="request-contact-name" class="form-label fw-bold">Tu Nombre<span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="request-contact-name" required>
@@ -100,17 +105,14 @@
                     <small class="form-text text-muted">Te contactaremos a este email para confirmar.</small>
                  </div>
 
-                 {/* Placeholder for submission errors specific to this form */}
                  <div id="request-submission-error" class="alert alert-danger mt-3 d-none" role="alert"></div>
 
                  <div class="d-flex justify-content-between mt-4">
                     <button type="button" class="btn btn-outline-secondary" onclick="goBack()">Volver (Seleccionar Tipo)</button>
-                    {/* Calls NEW submit function */}
                     <button type="button" class="btn btn-success" id="submit-request-button" onclick="submitDateRequest()">Enviar Solicitud de Fecha</button>
                 </div>
             </div>
 
-             {/* --- NEW STEP: Request Date - Confirmation --- */}
              <div id="step-request-confirm" class="form-step d-none">
                  <div class="text-center p-4">
                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-calendar-check text-success mb-3" viewBox="0 0 16 16">
@@ -121,26 +123,65 @@
                     <p>Gracias por tu solicitud para agendar una nueva fecha. Revisaremos la disponibilidad y te contactaremos pronto a <span id="confirm-request-email" class="fw-bold">tu email</span>.</p>
                     <p>Solicitaste:</p>
                     <p><strong id="confirm-request-details">Experiencia - Fecha - Hora</strong></p>
-                    {/* Go back to the very first step */}
                     <button class="btn btn-primary mt-4" onclick="goToStep('step-q1GJ')">Volver al Inicio</button>
                 </div>
              </div>
 
 
             {/* --- Other Existing Steps --- */}
-            <div id="step-bSoz" class="form-step d-none">...</div>
-            <div id="step-2sff" class="form-step d-none">...</div>
-            <div id="step-qf5J" class="form-step d-none">...</div>
-            <div id="step-checkout-placeholder" class="form-step d-none">...</div>
-            <div id="step-gr5a" class="form-step d-none">...</div>
-            <div id="subform-group-config" class="form-step d-none">...</div>
-            <div id="subform-scheduling" class="form-step d-none">...</div>
+            <div id="step-bSoz" class="form-step d-none">
+                <h2>Reserva de experiencia - Grupo</h2>
+                <hr>
+                {/* ... content ... */}
+                <div class="mb-3">...</div>
+                <div class="d-flex justify-content-between mt-4">...</div>
+            </div>
+            <div id="step-2sff" class="form-step d-none">
+                <h2>Reserva de experiencia - Almuerzo o Cena</h2>
+                <hr>
+                {/* ... content ... */}
+                 <p id="widget-nRxz" class="alert alert-info d-none">...</p>
+                 <p id="widget-kJ8C" class="alert alert-warning d-none">...</p>
+                 <p id="widget-5A7s" class="alert alert-warning d-none">...</p>
+                <div class="mb-3">...</div>
+                <div class="d-flex justify-content-between mt-4">...</div>
+            </div>
+            <div id="step-qf5J" class="form-step d-none">
+                 <h2>Resumen de Reserva</h2>
+                 <hr>
+                 {/* ... content ... */}
+                 <div class="mb-3 border p-3 rounded">...</div>
+                 <div class="mb-3">...</div>
+                 <div class="d-flex justify-content-between mt-4">...</div>
+            </div>
+            <div id="step-checkout-placeholder" class="form-step d-none">
+                 <h2>Pago de Abono</h2>
+                 <hr>
+                 {/* ... content ... */}
+                 <div class="alert alert-warning">...</div>
+                 <div class="text-center mt-4 mb-3">...</div>
+                 <div class="d-flex justify-content-start mt-4">...</div>
+            </div>
+             <div id="step-gr5a" class="form-step d-none">
+                 <div class="text-center p-4">...</div>
+             </div>
+             <div id="subform-group-config" class="form-step d-none">
+                 <h2>Configuración del Grupo</h2>
+                 <hr>
+                 {/* ... content ... */}
+            </div>
+            <div id="subform-scheduling" class="form-step d-none">
+                <h2 id="scheduling-title">Agendar Experiencia</h2>
+                <hr>
+                {/* ... content ... */}
+            </div>
 
 
         </div> </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    {/* Added Flatpickr JS */}
+    {/* Flatpickr Core JS */}
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script> {/* Spanish locale for Flatpickr */}
+    {/* UPDATED: Flatpickr Spanish Locale from jsdelivr */}
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
     <script src="js/script.js"></script>
 </body>
 </html>
