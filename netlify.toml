@@ -17,7 +17,6 @@
   ]
 
 [context.production.environment]
-  AIRTABLE_BASE_ID = "appqWloaGKCaVKck4"
   AIRTABLE_TABLE_RESERVAS = "tblJSKGb4IBeyUwyo"
   AIRTABLE_TABLE_EXPERIENCES = "tblJ604IExFMU3KvW"
   AIRTABLE_TABLE_FOOD = "tblz3fbgTFnqfCGi9"
