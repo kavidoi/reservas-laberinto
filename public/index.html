@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reserva de Experiencia - Vinos Laberinto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    </head>
+<body>
+
+    <div class="container mt-5 form-container">
+        <div class="form-background"></div>
+        <div class="form-content p-4 rounded shadow bg-light">
+
+            <div class="text-center mb-4">
+                <img src="https://images.fillout.com/orgid-311426/flowpublicid-auTAUzjKv4us/widgetid-gFCY/hWRPunudqqsastqDNFfDwz/logo-2.png?a=mWyo9M9yxa2aW9xLVXhLbZ" alt="Logo Vinos Laberinto" style="max-height: 80px;">
+            </div>
+
+            <div id="step-q1GJ" class="form-step">
+                <h2>Reserva de experiencia - Tipo</h2>
+                <hr>
+
+                <div id="widget-oY8v-container" class="mb-3">
+                    <label for="widget-oY8v" class="form-label fw-bold"><h4>Experiencias grupales</h4></label>
+                    <p class="form-text">Selecciona una de las experiencias grupales disponibles.</p>
+                    <select class="form-select mb-2" id="widget-oY8v">
+                        <option value="" selected disabled>Cargando experiencias...</option>
+                    </select>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Funcionalidad no implementada: Solicitar otra fecha.')">Solicitar otra fecha (Placeholder)</button>
+                 </div>
+
+                <hr id="widget-2mrE">
+
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="widget-grSj">
+                    <label class="form-check-label" for="widget-grSj">Prefiero activar una experiencia exclusiva para mi grupo.</label>
+                </div>
+
+                <div id="widget-3duJ-container" class="mb-3 d-none">
+                     <label class="form-label fw-bold">Experiencia Exclusiva</label>
+                     <p>Agenda tu experiencia exclusiva según disponibilidad.</p>
+                     <button type="button" class="btn btn-outline-primary" onclick="goToStep('subform-scheduling'); document.getElementById('scheduling-title').textContent='Agendar Experiencia Exclusiva';">Agendar Experiencia Exclusiva</button>
+                     <small class="form-text d-block mt-1">Agendado: <span id="subform-3duJ-status">No</span></small>
+                 </div>
+
+                 <div class="d-flex justify-content-end mt-4">
+                    <button type="button" class="btn btn-primary" onclick="goToStep('step-bSoz')">Continuar la reserva</button>
+                </div>
+            </div>
+
+            <div id="step-bSoz" class="form-step d-none">
+                <h2>Reserva de experiencia - Grupo</h2>
+                <hr>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Configuración del Grupo</label>
+                    <p class="form-text">Te preguntaremos datos de la cantidad de personas y restricciones.</p>
+                    <button type="button" id="btn-aZoD-add" class="btn btn-outline-primary" onclick="goToStep('subform-group-config');">Configurar grupo</button>
+                    <button type="button" id="btn-aZoD-edit" class="btn btn-outline-secondary d-none" onclick="goToStep('subform-group-config');">Editar grupo</button>
+                     <small class="form-text d-block mt-1">Grupo configurado: <span id="subform-aZoD-status">No</span></small>
+                </div>
+                 <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-outline-secondary" onclick="goBack()">Volver</button>
+                    <button type="button" class="btn btn-primary" onclick="goToStep('step-2sff')">Siguiente: Comida</button>
+                </div>
+            </div>
+
+             <div id="step-2sff" class="form-step d-none">
+                <h2>Reserva de experiencia - Almuerzo o Cena</h2>
+                <hr>
+
+                <p id="widget-nRxz" class="alert alert-info d-none">Cuando terminan nuestras experiencias grupales se procede al almuerzo o cena...</p>
+                 <p id="widget-kJ8C" class="alert alert-warning d-none">Para la experiencia exclusiva debe considerarse...</p>
+                 <p id="widget-5A7s" class="alert alert-warning d-none">De nuestra experiencia no es posible hacer la degustación...</p>
+
+                <div class="mb-3">
+                    <label for="widget-3vTL" class="form-label fw-bold">Comida Adicional (Opcional)</label>
+                    <select class="form-select" id="widget-3vTL">
+                         <option value="" selected disabled>Cargando opciones de comida...</option>
+                    </select>
+                     <small class="form-text">Selecciona si deseas agregar almuerzo o cena a tu experiencia.</small>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-outline-secondary" onclick="goBack()">Volver</button>
+                    <button type="button" class="btn btn-primary" onclick="goToStep('step-qf5J')">Ver Resumen y Pagar Abono</button>
+                </div>
+            </div>
+
+            <div id="step-qf5J" class="form-step d-none">
+                 <h2>Resumen de Reserva</h2>
+                <hr>
+                <div class="mb-3 border p-3 rounded">
+                    <p><strong>Fecha Reserva:</strong> <span id="summary-fecha">Pendiente</span></p>
+                    <p><strong>Tipo Experiencia:</strong> <span id="summary-experiencia">Pendiente</span></p>
+                    <p><strong>Tamaño grupo:</strong> <span id="summary-tamano">Pendiente</span></p>
+                    <p><strong>Comida Adicional:</strong> <span id="summary-comida">Pendiente</span></p>
+                    <hr>
+                    <p><strong>Precio total estimado:</strong> $<span id="summary-precio-total">0</span> CLP</p>
+                    <p><strong>Descuento total aplicado:</strong> $<span id="summary-descuento">0</span> CLP</p>
+                    <p><strong>Abono a pagar:</strong> $<span id="summary-abono">0</span> CLP</p>
+                </div>
+                <div class="mb-3">
+                    <label for="widget-3KPv" class="form-label">Código descuento (Opcional)</label>
+                    <input type="text" class="form-control" id="widget-3KPv" placeholder="Ingresa tu código">
+                </div>
+                <div class="d-flex justify-content-between mt-4">
+                     <button type="button" class="btn btn-outline-secondary" onclick="goBack()">Volver</button>
+                    <button type="button" class="btn btn-success" onclick="goToStep('step-checkout-placeholder')">Proceder al Pago del Abono</button>
+                </div>
+            </div>
+
+            <div id="step-checkout-placeholder" class="form-step d-none">
+                 <h2>Pago de Abono</h2>
+                <hr>
+                <div class="alert alert-warning">
+                    <strong>Abono requerido:</strong> $<span id="checkout-abono-amount">0</span> CLP.
+                    <p class="mt-2">Asegura tu lugar pagando el abono correspondiente. Este será descontado del total al momento de tu visita.</p>
+                    <p class="mt-3 text-muted small">El pago real con tarjeta no está implementado en esta versión. Al confirmar, se guardará la reserva en Airtable.</p>
+                </div>
+                <div class="text-center mt-4 mb-3">
+                    <button id="submit-button" class="btn btn-lg btn-success" onclick="submitReservation()">Confirmar Reserva</button>
+                     <div id="submission-error" class="alert alert-danger mt-3 d-none" role="alert">
+                        Error al guardar la reserva. </div>
+                </div>
+                 <div class="d-flex justify-content-start mt-4">
+                    <button type="button" class="btn btn-outline-secondary" onclick="goBack()">Volver</button>
+                 </div>
+            </div>
+
+
+            <div id="step-gr5a" class="form-step d-none">
+                 <div class="text-center p-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-check-circle-fill text-success mb-3" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                    </svg>
+                    <h2>¡Gracias por tu reserva!</h2>
+                    <p>Hemos recibido y guardado tu información. Recibirás un correo con los detalles (simulado).</p>
+                    <div class="mt-3 text-start border p-3 rounded bg-white">
+                         <h5>Resumen Guardado:</h5>
+                         <p><strong>Experiencia:</strong> <span id="final-summary-experiencia">Pendiente</span></p>
+                         <p><strong>Fecha/Hora:</strong> <span id="final-summary-fecha">Pendiente</span></p>
+                         <p><strong>Grupo:</strong> <span id="final-summary-grupo">Pendiente</span></p>
+                         <p><strong>Abono Registrado:</strong> $<span id="final-summary-abono">0</span> CLP</p>
+                         <p class="small text-muted">ID Registro Airtable: <span id="final-summary-record-id">Pendiente</span></p>
+                    </div>
+                    <button class="btn btn-primary mt-4" onclick="window.location.reload()">Hacer otra reserva</button>
+                </div>
+            </div>
+
+             <div id="subform-group-config" class="form-step d-none">
+                 <h2>Configuración del Grupo</h2>
+                 <hr>
+                 <div class="alert alert-secondary small">Identificación del Organizador (Pendiente implementación de Login)</div>
+                 <input type="hidden" id="widget-kkTo" value="organizer_rec_id">
+
+                 <div class="mb-3">
+                    <label for="widget-tZqh" class="form-label">Tamaño del grupo (incluyendo el organizador) <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="widget-tZqh" min="1" max="10" value="1" required>
+                </div>
+
+                 <div id="group-details-section" class="d-none">
+                    <div class="form-check mb-3">
+                         <input class="form-check-input" type="checkbox" value="" id="widget-qdCu" checked>
+                         <label class="form-check-label" for="widget-qdCu">
+                            Todos son mayores de edad y participan de la cata de vinos <span class="text-danger">*</span>
+                         </label>
+                    </div>
+                     <div id="group-restrictions-section" class="d-none border p-3 rounded mb-3 bg-light">
+                         <p class="small text-muted">Solo pueden participar de la cata de vinos mayores de edad...</p>
+                         <div class="form-check mb-3">
+                             <input class="form-check-input" type="checkbox" value="" id="widget-r8jP">
+                             <label class="form-check-label" for="widget-r8jP">
+                                 Confirmo que todos los asistentes son mayores de 16 años.
+                             </label>
+                         </div>
+                         <div class="mb-3">
+                             <label for="widget-5Cc7" class="form-label">¿Cuántos adultos (mayores de 18) <strong>no</strong> beben vino?</label>
+                             <input type="number" class="form-control" id="widget-5Cc7" min="0" value="0">
+                         </div>
+                         <div class="mb-3" id="widget-oKhU-container">
+                             <label for="widget-oKhU" class="form-label">Niños menores de 12 (Solo aplica en experiencias exclusivas)</label>
+                             <input type="number" class="form-control" id="widget-oKhU" min="0" value="0" disabled>
+                             <small class="form-text">Menores de 12 no pagan en experiencias exclusivas.</small>
+                         </div>
+                     </div>
+                </div>
+
+                <div id="single-attendee-section" class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="widget-eheb" required>
+                        <label class="form-check-label" for="widget-eheb">
+                             Soy el único asistente de la reserva y soy mayor de edad <span class="text-danger">*</span>
+                        </label>
+                    </div>
+                </div>
+
+                 <div id="group-members-section" class="mb-3 d-none">
+                    <label class="form-label">Integrantes adicionales del grupo (Opcional)</label>
+                    <p class="form-text">Si quieres que les lleguen los detalles de la reserva, agrégalos aquí.</p>
+                     <div id="group-members-list"></div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="alert('Funcionalidad no implementada: Agregar miembro')">Agregar Integrante</button>
+                 </div>
+
+                <div class="mb-3">
+                    <label for="widget-gfnx" class="form-label">Otros comentarios, alergias alimentarias, etc.</label>
+                    <textarea class="form-control" id="widget-gfnx" rows="2"></textarea>
+                </div>
+
+                 <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-outline-secondary" onclick="goBack()">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="document.getElementById('subform-aZoD-status').textContent='Sí'; document.getElementById('btn-aZoD-add').classList.add('d-none'); document.getElementById('btn-aZoD-edit').classList.remove('d-none'); goBack(); updateSummary();">Guardar Info Grupo</button>
+                </div>
+            </div>
+
+            <div id="subform-scheduling" class="form-step d-none">
+                <h2 id="scheduling-title">Agendar Experiencia</h2>
+                <hr>
+                 <div class="alert alert-secondary small">Identificación del Usuario (Pendiente implementación de Login)</div>
+                <div class="mb-3">
+                    <label for="scheduling-experience-type" class="form-label">Experiencia Seleccionada</label>
+                    <input type="text" readonly class="form-control-plaintext" id="scheduling-experience-type" value="(Se mostrará aquí)">
+                 </div>
+                 <hr>
+                <h4>Selecciona Fecha y Hora</h4>
+                 <div class="alert alert-info">
+                     <p id="scheduling-rules">Reglas de Agendamiento (Ej: Mínimo 36 horas de anticipación...)</p>
+                 </div>
+                 <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="scheduling-date" class="form-label">Fecha</label>
+                        <input type="date" class="form-control" id="scheduling-date">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="scheduling-time" class="form-label">Hora</label>
+                        <input type="time" class="form-control" id="scheduling-time" step="1800"> </div>
+                 </div>
+                 <hr>
+                 <h4>Tu información</h4>
+                <div class="row g-3 mb-3">
+                     <div class="col-md-6">
+                         <label for="scheduling-name" class="form-label">Nombre</label>
+                         <input type="text" class="form-control" id="scheduling-name" placeholder="Nombre Apellido" value="">
+                     </div>
+                     <div class="col-md-6">
+                         <label for="scheduling-email" class="form-label">Correo</label>
+                         <input type="email" class="form-control" id="scheduling-email" placeholder="tu@correo.com" value="">
+                     </div>
+                 </div>
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-outline-secondary" onclick="goBack()">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="document.getElementById('subform-3duJ-status').textContent='Sí'; goBack(); updateSummary();">Confirmar Horario</button>
+                </div>
+            </div>
+
+
+        </div> </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+/* public/css/style.css */
+/* Custom styles for Reserva Laberinto form */
+/* Last Updated: Sunday, April 6, 2025 at 10:28:52 PM -04 Chile Time */
+
+body {
+    /* Mimic background settings from theme */
+    background-color: #f3f4f6; /* Default light gray */
+    /* The specific background image from original Fillout theme */
+    background-image: url('https://images.fillout.com/orgid-311426/flowpublicid-id9LJzbXfAus/widgetid-undefined/1BauF8us8dauMH83trCj8k/DJI_0053.jpg?a=ukEiCEovchtEGQcK3jwUyp');
+    background-size: cover;
+    background-position: center center; /* Adjusted based on theme value */
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* Keep background fixed */
+    min-height: 100vh;
+    display: flex;
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+    padding-top: 2rem; /* Add some padding at the top */
+    padding-bottom: 2rem; /* Add some padding at the bottom */
+}
+
+.form-container {
+    position: relative;
+    max-width: 700px; /* Adjust width as needed */
+    width: 100%;
+}
+
+/* Simulate the background image brightness/overlay */
+.form-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1); /* Light overlay to mimic brightness=1 */
+    backdrop-filter: blur(5px); /* Optional blur effect */
+    z-index: 1;
+    border-radius: 0.375rem; /* Match Bootstrap's rounded corners */
+}
+
+
+.form-content {
+    position: relative; /* Ensure content is above the background overlay */
+    z-index: 2;
+    background-color: rgba(255, 255, 255, 0.95) !important; /* Mimic theme questionsBackgroundColor with slight transparency */
+    min-height: 400px; /* Ensure minimum height */
+}
+
+/* Mimic theme primary color */
+.btn-primary {
+    /* Primary color from Fillout Theme: rgba(97, 97, 37, 1) */
+    background-color: #616125;
+    border-color: #505019; /* Slightly darker border */
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: #505019;
+    border-color: #3f3f14;
+}
+
+.btn-success {
+     /* Consider using primary color for consistency or keep Bootstrap default green */
+}
+
+.form-check-input:checked {
+    background-color: #616125;
+    border-color: #505019;
+}
+
+.form-label.fw-bold {
+    color: #374151; /* Mimic theme questionsColor */
+}
+
+h2, h4 {
+     color: #374151;
+}
+
+/* Form Step Animation */
+.form-step {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Utility */
+.d-none {
+    display: none !important;
+}
+
+/* Ensure selects don't look disabled when they are briefly during load */
+select:disabled {
+    opacity: 0.8;
+    background-color: #e9ecef; /* Bootstrap's default disabled background */
+}
