@@ -1,0 +1,23 @@
+[build]
+  command = "npm install"
+  functions = "functions"
+  publish = "public"
+
+[context.production.environment]
+  AIRTABLE_API_KEY = "@airtable_api_key_prod"
+  AIRTABLE_BASE_ID = "@airtable_base_id"
+  AIRTABLE_TABLE_RESERVAS = "tblJSKGb4IBeyUwyo"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self' https://airtable.com"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[plugins]]
+package = "@netlify/plugin-rate-limit"
+  [plugins.inputs]
+  paths = ["/api/*"]
+  limit = 10
+  window = 900
