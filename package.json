@@ -1,0 +1,24 @@
+{
+    "name": "reservas-laberinto",
+    "version": "1.0.0",
+    "description": "Reservation form for Vinos Laberinto with Airtable backend",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "form",
+        "airtable",
+        "netlify",
+        "serverless",
+        "reservations"
+    ],
+    "author": "Kavi Doi",
+    "license": "ISC",
+    "dependencies": {
+        "@sentry/aws-serverless": "^8.55.0",
+        "airtable": "^0.12.2",
+        "async-retry": "^1.3.3",
+        "memory-cache": "^0.2.0"
+    }
+}
