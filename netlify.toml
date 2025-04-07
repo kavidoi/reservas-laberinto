@@ -27,13 +27,6 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
-# --- Netlify Plugins ---
-[[plugins]]
-package = "@netlify/plugin-rate-limit"
-  [plugins.inputs]
-    paths = ["/api/*"] # Assumes Netlify routes /api/* to functions
-    limit = 10
-    window = 900
 
 # Note: Added timestamp comment
 # Last Updated: Sunday, April 6, 2025 at 11:21:00 PM -04 (Vitacura, Santiago Metropolitan Region, Chile)
