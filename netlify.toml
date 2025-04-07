@@ -1,6 +1,7 @@
 # netlify.toml
 # Final Configuration for Netlify deployment for Reservas Laberinto
-# Last Updated: Monday, April 7, 2025 at 6:31:00 PM -04 Chile Time
+# Removed AIRTABLE_BASE_ID definition; value MUST be set in Netlify UI.
+# Last Updated: Monday, April 7, 2025 at 7:21:00 PM -04 Chile Time
 
 [build]
   command = "npm install"
@@ -22,21 +23,30 @@
 
 # Production context environment variables
 # SECRETS (API Key, Sentry DSN) MUST be set in Netlify UI, not here.
+# BASE ID MUST ALSO be set in Netlify UI now.
 [context.production.environment]
-  AIRTABLE_BASE_ID = "YOUR_BASE_ID_SET_IN_NETLIFY_UI" # Use placeholder - Set in UI
+  # --- Airtable Configuration ---
+  # Set AIRTABLE_API_KEY in the Netlify UI
+  # AIRTABLE_API_KEY = "value-set-in-netlify-ui" # Placeholder
+
+  # AIRTABLE_BASE_ID line completely removed - MUST be set in Netlify UI
+
+  # Airtable Table IDs (These are okay here)
   AIRTABLE_TABLE_RESERVAS = "tblJSKGb4IBeyUwyo"        # Main submission table
   AIRTABLE_TABLE_EXPERIENCES = "tblaBc1QhlksnV5Qb"     # Experience Types table
   AIRTABLE_TABLE_EVENTOS = "tblJ604IExFMU3KvW"       # Scheduled Events table
   AIRTABLE_TABLE_FOOD = "tblz3fbgTFnqfCGi9"            # Food Options table
-  # AIRTABLE_API_KEY = "value-set-in-netlify-ui"      # Placeholder - Set in UI
-  # SENTRY_DSN = "value-set-in-netlify-ui"          # Placeholder - Set in UI
+
+  # --- Other Variables ---
+  # Set SENTRY_DSN in Netlify UI if using Sentry
+  # SENTRY_DSN = "value-set-in-netlify-ui"          # Placeholder
   NODE_ENV = "production"
 
 # Custom HTTP Headers
 [[headers]]
   for = "/*"
   [headers.values]
-    # Content Security Policy: Allows self, specific CDNs, inline styles (needed by some libs potentially)
+    # Content Security Policy: Allows self, specific CDNs, inline styles
     Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://code.jquery.com; style-src 'self' https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self' *.sentry.io;"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
@@ -47,4 +57,3 @@
   to = "/.netlify/functions/:splat"
   status = 200 # Internal rewrite
 
-# No Netlify Build plugins currently used
