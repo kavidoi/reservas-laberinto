@@ -1,62 +1,37 @@
 # netlify.toml
-# Configuration for Netlify deployment for Reservas Laberinto
-# Last Updated: Monday, April 7, 2025 at 12:24:30 AM -04 (Vitacura, Santiago Metropolitan Region, Chile)
 
-# Build settings applicable to all contexts
 [build]
-  # Command to run during build (installs function dependencies)
   command = "npm install"
-  # Directory containing Netlify functions relative to the base directory
   functions = "functions"
-  # Directory containing static site assets to deploy relative to the base directory
   publish = "public"
-  # Environment variables for the build process itself
   [build.environment]
-    # Specify the Node.js version for the build environment and functions
     NODE_VERSION = "18"
 
-# Function bundling configuration as a separate top-level section
 [functions]
   node_bundler = "esbuild"
-  included_files = ["node_modules/airtable/**"]
+  included_files = [
+      "node_modules/airtable/**",
+      "node_modules/memory-cache/**",
+      "node_modules/async-retry/**",
+      "node_modules/@sentry/aws-serverless/**"
+  ]
 
-# Environment variables specific only to the production context
-# Secrets like API keys should ideally be set ONLY in the Netlify UI for security
 [context.production.environment]
-  # --- Airtable Configuration ---
-  # Set AIRTABLE_API_KEY in the Netlify UI (Site settings > Build & deploy > Environment)
-  # AIRTABLE_API_KEY = "value-set-in-netlify-ui"
-
-  # Base and Table IDs (Table IDs are generally safe here, Base ID maybe less so but okay)
-  AIRTABLE_TABLE_RESERVAS = "tblJSKGb4IBeyUwyo"     # Table for main submissions
-  AIRTABLE_TABLE_EXPERIENCES = "tblaBc1QhlksnV5Qb"  # Table for experiences dropdown
-  AIRTABLE_TABLE_FOOD = "tblz3fbgTFnqfCGi9"         # Table for food options dropdown
-
-  # --- Other Variables ---
-  # Set SENTRY_DSN in Netlify UI if using Sentry
-  # SENTRY_DSN = "value-set-in-netlify-ui"
-  # NODE_ENV = "production" # Can set this here or in UI
-
-# --- Custom Headers ---
+  AIRTABLE_BASE_ID = "appqWloaGKCaVKck4"
+  AIRTABLE_TABLE_RESERVAS = "tblJSKGb4IBeyUwyo"
+  AIRTABLE_TABLE_EXPERIENCES = "tblJ604IExFMU3KvW"
+  AIRTABLE_TABLE_FOOD = "tblz3fbgTFnqfCGi9"
+  # SET AIRTABLE_API_KEY and SENTRY_DSN in Netlify UI
 
 [[headers]]
   for = "/*"
   [headers.values]
-    # Content Security Policy - ADD npmcdn.com to script-src
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://npmcdn.com; style-src 'self' https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self' *.sentry.io;"
-    # Other headers...
+    # Content Security Policy - Removed npmcdn.com
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self' *.sentry.io;"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
-# --- Redirects/Rewrites ---
 [[redirects]]
-  # Map requests from the user-friendly /api/* path...
   from = "/api/*"
-  # ...to the actual Netlify function location.
   to = "/.netlify/functions/:splat"
-  # Status 200 makes it an internal rewrite (proxy).
   status = 200
-  # force = true # Usually not needed unless complex rules conflict
-
-# Note: The [[plugins]] section for rate-limit was removed as it caused build errors.
-# Consider using Netlify Edge Functions for rate limiting if needed later.

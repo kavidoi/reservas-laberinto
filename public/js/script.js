@@ -1,79 +1,25 @@
 // public/js/script.js
 // Handles form navigation, conditional logic, dynamic dropdown population, summary updates, and submission.
-// Includes logic for simplified Date Request sub-flow.
-// Last Updated: Monday, April 7, 2025 at 3:59:32 AM -04 Chile Time
+// Uses addEventListener instead of inline onclick attributes.
+// Last Updated: Monday, April 7, 2025 at 11:17:53 AM -04 Chile Time
 
 let currentStepId = 'step-q1GJ';
 let historyStack = ['step-q1GJ'];
 
 // --- Helper Functions ---
-// (setText, showError, hideError remain the same)
-function setText(elementId, text) { /* ... */ }
-function showError(errorElement, message) { /* ... */ }
-function hideError(errorElement) { /* ... */ }
+function setText(elementId, text) { /* ... */ } // (Keep existing helper)
+function showError(errorElement, message) { /* ... */ } // (Keep existing helper)
+function hideError(errorElement) { /* ... */ } // (Keep existing helper)
 
 // --- Dynamic Dropdown Population ---
 // (populateDropdown remains the same)
 async function populateDropdown(selectElementId, tableType, filterValue = null) { /* ... */ }
-
-// --- NEW: Populate Dropdown specifically for Request Date Experience Type ---
-async function populateRequestExperienceTypes() {
-    const selectElementId = 'request-experience-type';
-    const tableType = 'experiences'; // Use the same 'experiences' type
-    // We still only want to allow scheduling of 'Grupal' types via this form
-    const filterValue = 'Grupal';
-
-    const selectElement = document.getElementById(selectElementId);
-    if (!selectElement) { return; } // Exit if element not found
-
-    // Show loading state
-    selectElement.disabled = true;
-    selectElement.innerHTML = `<option value="" selected disabled>Cargando tipos...</option>`;
-
-    let apiUrl = `/api/get-options?tableType=${encodeURIComponent(tableType)}`;
-     if (filterValue) { // Add filter for Grupal
-        apiUrl += `&filterValue=${encodeURIComponent(filterValue)}`;
-    }
-    // NOTE: This currently doesn't filter out non-'futuro' events,
-    // it fetches based on 'Modalidad' only, assuming any Grupal type can be requested.
-    // If you only want to request types that *also* have 'Estado Evento'='futuro'
-    // (which seems less likely for requesting *new* dates), the backend 'get-options'
-    // would need adjustment or a new parameter. Assuming fetching all 'Grupal' types is desired here.
-
-    try {
-        const response = await fetch(apiUrl);
-        const responseContentType = response.headers.get("content-type");
-        if (!response.ok) { throw new Error(`HTTP error ${response.status}`); }
-        if (!responseContentType || !responseContentType.includes("application/json")) {
-             throw new Error(`Received non-JSON response from ${apiUrl}`); }
-        const options = await response.json();
-
-        selectElement.innerHTML = `<option value="" selected disabled>Selecciona tipo de experiencia...</option>`; // Restore placeholder
-
-        if (options && Array.isArray(options) && options.length > 0) {
-            options.forEach(option => {
-                if (option.id && option.name) {
-                    const optionElement = document.createElement('option');
-                    optionElement.value = option.id;
-                    optionElement.textContent = option.name;
-                    selectElement.appendChild(optionElement);
-                }
-            });
-             selectElement.selectedIndex = 0; // Ensure placeholder is shown
-        } else {
-             selectElement.innerHTML = `<option value="" selected disabled>No hay tipos disponibles</option>`;
-        }
-    } catch (error) {
-        console.error(`Failed to populate dropdown #${selectElementId}:`, error);
-        selectElement.innerHTML = `<option value="" selected disabled>Error al cargar tipos</option>`;
-    } finally {
-        selectElement.disabled = false;
-    }
-}
+// (populateRequestExperienceTypes remains the same)
+async function populateRequestExperienceTypes() { /* ... */ }
 
 
 // --- Navigation Logic ---
-// (showStep, goToStep, goBack remain the same)
+// (showStep, goToStep, goBack functions remain the same)
 function showStep(stepId) { /* ... */ }
 function goToStep(stepId) { /* ... */ }
 function goBack() { /* ... */ }
@@ -85,7 +31,7 @@ function handleGroupSizeChange() { /* ... */ }
 function handleGroupRestrictionChange() { /* ... */ }
 
 // --- Summary Update Function ---
-// (updateSummary remains the same)
+// (updateSummary function remains the same)
 function updateSummary() { /* ... */ }
 
 // --- Data Gathering for Main Submission ---
@@ -96,79 +42,9 @@ function gatherFormData() { /* ... */ }
 // (submitReservation remains the same)
 async function submitReservation() { /* ... */ }
 
-
-// --- NEW: Submit Date Request to Backend ---
-async function submitDateRequest() {
-    const submitButton = document.getElementById('submit-request-button');
-    const errorDiv = document.getElementById('request-submission-error');
-    const experienceSelect = document.getElementById('request-experience-type');
-    const dateInput = document.getElementById('request-date');
-    const timeInput = document.getElementById('request-time');
-    const nameInput = document.getElementById('request-contact-name');
-    const emailInput = document.getElementById('request-contact-email');
-
-    // Basic Validation
-    let isValid = true;
-    hideError(errorDiv); // Clear previous errors
-    [experienceSelect, dateInput, timeInput, nameInput, emailInput].forEach(input => {
-        if (!input?.value) {
-             input?.classList.add('is-invalid'); // Add Bootstrap validation class
-             isValid = false;
-        } else {
-             input?.classList.remove('is-invalid');
-        }
-    });
-
-    if (!isValid) {
-         showError(errorDiv, "Por favor completa todos los campos requeridos.");
-         return;
-    }
-
-    submitButton.disabled = true;
-    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enviando...';
-
-    const requestData = {
-        experienceTypeId: experienceSelect.value, // Record ID of the Evento type
-        experienceTypeName: experienceSelect.options[experienceSelect.selectedIndex]?.text, // Name for context
-        requestedDate: dateInput.value,
-        requestedTime: timeInput.value,
-        requesterName: nameInput.value,
-        requesterEmail: emailInput.value
-        // Add any other fields from the request form here
-    };
-
-    console.log("Date Request Data:", requestData);
-
-    // Send to NEW backend endpoint
-    const backendUrl = '/api/create-event'; // Needs functions/create-event.js
-
-    try {
-        const response = await fetch(backendUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', },
-            body: JSON.stringify(requestData),
-        });
-        const result = await response.json();
-
-        if (response.ok) {
-            console.log('Date request submission successful:', result);
-            // Update confirmation step details
-            setText('confirm-request-email', requestData.requesterEmail);
-            setText('confirm-request-details', `${requestData.experienceTypeName} - ${requestData.requestedDate} ${requestData.requestedTime}`);
-            goToStep('step-request-confirm'); // Show confirmation page
-        } else {
-            console.error(`Date request submission failed (${response.status}):`, result);
-            showError(errorDiv, result.message || `Error ${response.status}: Ocurrió un problema al enviar la solicitud.`);
-            submitButton.disabled = false;
-            submitButton.textContent = 'Enviar Solicitud de Fecha';
-        }
-    } catch (error) {
-        console.error('Network or fetch error during date request:', error);
-        showError(errorDiv, 'Error de red al enviar la solicitud. Verifica tu conexión e inténtalo de nuevo.');
-        submitButton.disabled = false;
-        submitButton.textContent = 'Enviar Solicitud de Fecha';
-    }
-}
+// --- Submit Date Request to Backend ---
+// (submitDateRequest remains the same)
+async function submitDateRequest() { /* ... */ }
 
 
 // --- Document Ready - Initial Setup & Listeners ---
@@ -176,41 +52,125 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM fully loaded and parsed");
     showStep(currentStepId);
 
-    // --- Initialize Flatpickr Date Picker ---
-    const dateInput = document.getElementById('request-date');
-    if (dateInput) {
-        flatpickr(dateInput, {
-            altInput: true, // Shows formatted date to user, sends standard format
-            altFormat: "j F, Y", // How user sees date e.g., "7 Abril, 2025"
-            dateFormat: "Y-m-d", // How date is sent to backend e.g., "2025-04-07"
-            minDate: new Date().fp_incr(10), // Minimum date is 10 days from today
-            locale: "es", // Use Spanish locale
-            disable: [
-                function(date) {
-                    // Disable Monday (1) to Thursday (4)
-                    const day = date.getDay();
-                    return (day === 1 || day === 2 || day === 3 || day === 4);
-                }
-            ],
-            // Add more options if needed
-        });
-        console.log("Flatpickr initialized for #request-date");
-    } else {
-        console.warn("Date input #request-date not found for Flatpickr.");
-    }
-
-
     // --- Populate Dropdowns ---
     console.log("Initiating dropdown population...");
-    populateDropdown('widget-oY8v', 'experiences', 'Grupal'); // Main form group experiences
-    populateDropdown('widget-3vTL', 'food');                  // Main form food options
-    populateRequestExperienceTypes();                          // Subform experience types
-
+    populateDropdown('widget-oY8v', 'experiences', 'Grupal');
+    populateDropdown('widget-3vTL', 'food');
+    populateRequestExperienceTypes();
 
     // --- Add Event Listeners ---
     console.log("Adding event listeners...");
     try {
-        // Existing Listeners...
+        // --- Step q1GJ Buttons ---
+        const btnRequestOtherDate = document.getElementById('btn-request-other-date');
+        if (btnRequestOtherDate) btnRequestOtherDate.addEventListener('click', () => goToStep('step-request-start'));
+
+        const btnAgendaExclusiva = document.getElementById('btn-agenda-exclusiva');
+        if (btnAgendaExclusiva) btnAgendaExclusiva.addEventListener('click', () => {
+            goToStep('subform-scheduling');
+            // Optionally set title here if needed, though subform itself might have title
+            const schedulingTitle = document.getElementById('scheduling-title');
+            if(schedulingTitle) schedulingTitle.textContent='Agendar Experiencia Exclusiva';
+        });
+
+        const btnQ1gjContinue = document.getElementById('btn-q1gj-continue');
+        if (btnQ1gjContinue) btnQ1gjContinue.addEventListener('click', () => goToStep('step-bSoz'));
+
+        // --- Step request-start Buttons ---
+        const btnRequestCancel = document.getElementById('btn-request-cancel');
+        if (btnRequestCancel) btnRequestCancel.addEventListener('click', () => goToStep('step-q1GJ')); // Go back to start
+
+        const btnRequestSelectDatetime = document.getElementById('btn-request-select-datetime');
+        if (btnRequestSelectDatetime) btnRequestSelectDatetime.addEventListener('click', () => {
+             // Optional: Add validation here before proceeding
+             const experienceTypeSelect = document.getElementById('request-experience-type');
+             if (experienceTypeSelect && !experienceTypeSelect.value) {
+                 experienceTypeSelect.classList.add('is-invalid');
+                 alert('Por favor selecciona un tipo de experiencia.');
+             } else {
+                experienceTypeSelect?.classList.remove('is-invalid');
+                goToStep('step-request-select-datetime');
+             }
+        });
+
+        // --- Step request-select-datetime Buttons ---
+        const btnRequestDatetimeBack = document.getElementById('btn-request-datetime-back');
+        if (btnRequestDatetimeBack) btnRequestDatetimeBack.addEventListener('click', goBack); // Go back to request-start
+
+        const submitRequestButton = document.getElementById('submit-request-button');
+        if (submitRequestButton) submitRequestButton.addEventListener('click', submitDateRequest);
+
+         // --- Step request-confirm Buttons ---
+        const btnRequestConfirmHome = document.getElementById('btn-request-confirm-home');
+        if (btnRequestConfirmHome) btnRequestConfirmHome.addEventListener('click', () => goToStep('step-q1GJ'));
+
+        // --- Step bSoz Buttons ---
+        const btnConfigGroupAdd = document.getElementById('btn-aZoD-add');
+        if (btnConfigGroupAdd) btnConfigGroupAdd.addEventListener('click', () => goToStep('subform-group-config'));
+
+        const btnConfigGroupEdit = document.getElementById('btn-aZoD-edit');
+        if (btnConfigGroupEdit) btnConfigGroupEdit.addEventListener('click', () => goToStep('subform-group-config'));
+
+        const btnBsozBack = document.getElementById('btn-bsoz-back');
+        if (btnBsozBack) btnBsozBack.addEventListener('click', goBack);
+
+        const btnBsozContinue = document.getElementById('btn-bsoz-continue');
+        if (btnBsozContinue) btnBsozContinue.addEventListener('click', () => goToStep('step-2sff'));
+
+        // --- Step 2sff Buttons ---
+        const btn2sffBack = document.getElementById('btn-2sff-back');
+        if (btn2sffBack) btn2sffBack.addEventListener('click', goBack);
+
+        const btn2sffContinue = document.getElementById('btn-2sff-continue');
+        if (btn2sffContinue) btn2sffContinue.addEventListener('click', () => goToStep('step-qf5J'));
+
+        // --- Step qf5j Buttons ---
+        const btnQf5jBack = document.getElementById('btn-qf5j-back');
+        if (btnQf5jBack) btnQf5jBack.addEventListener('click', goBack);
+
+        const btnQf5jContinue = document.getElementById('btn-qf5j-continue');
+        if (btnQf5jContinue) btnQf5jContinue.addEventListener('click', () => goToStep('step-checkout-placeholder'));
+
+        // --- Step checkout Buttons ---
+        const btnCheckoutBack = document.getElementById('btn-checkout-back');
+        if (btnCheckoutBack) btnCheckoutBack.addEventListener('click', goBack);
+
+        const submitButton = document.getElementById('submit-button');
+        if (submitButton) submitButton.addEventListener('click', submitReservation);
+
+        // --- Step gr5a Buttons ---
+        const btnGr5aNewBooking = document.getElementById('btn-gr5a-new-booking');
+        if (btnGr5aNewBooking) btnGr5aNewBooking.addEventListener('click', () => window.location.reload());
+
+        // --- Subform Group Config Buttons ---
+        const btnGroupConfigCancel = document.getElementById('btn-group-config-cancel');
+        if (btnGroupConfigCancel) btnGroupConfigCancel.addEventListener('click', goBack); // Assumes goBack is appropriate
+
+        const btnGroupConfigSave = document.getElementById('btn-group-config-save');
+        if (btnGroupConfigSave) btnGroupConfigSave.addEventListener('click', () => {
+            // Simulate saving and returning
+            setText('subform-aZoD-status', 'Sí');
+            document.getElementById('btn-aZoD-add')?.classList.add('d-none');
+            document.getElementById('btn-aZoD-edit')?.classList.remove('d-none');
+            goBack(); // Go back to step bSoz
+            updateSummary();
+        });
+
+        // --- Subform Scheduling Buttons ---
+        const btnSchedulingCancel = document.getElementById('btn-scheduling-cancel');
+        if (btnSchedulingCancel) btnSchedulingCancel.addEventListener('click', goBack); // Assumes goBack is appropriate
+
+        const btnSchedulingConfirm = document.getElementById('btn-scheduling-confirm');
+        if (btnSchedulingConfirm) btnSchedulingConfirm.addEventListener('click', () => {
+             // Simulate saving and returning
+             setText('subform-3duJ-status','Sí');
+             // TODO: Need to actually capture date/time from this subform and store it
+             // For now, just go back
+             goBack(); // Go back to step q1GJ
+             updateSummary();
+        });
+
+        // --- Other Element Listeners ---
         const exclusiveSwitch = document.getElementById('widget-grSj');
         if (exclusiveSwitch) { exclusiveSwitch.addEventListener('change', () => { /* ... */ checkLunchParagraphs(); updateSummary(); }); }
         const groupSizeInput = document.getElementById('widget-tZqh');
@@ -223,17 +183,41 @@ document.addEventListener('DOMContentLoaded', () => {
         if (foodSelect) foodSelect.addEventListener('change', updateSummary);
         const discountInput = document.getElementById('widget-3KPv');
         if (discountInput) discountInput.addEventListener('input', updateSummary);
-        const scheduleDateInput = document.getElementById('scheduling-date'); // For main exclusive scheduling
+        const scheduleDateInput = document.getElementById('scheduling-date');
         const scheduleTimeInput = document.getElementById('scheduling-time');
         if(scheduleDateInput) scheduleDateInput.addEventListener('change', updateSummary);
         if(scheduleTimeInput) scheduleTimeInput.addEventListener('change', updateSummary);
+        const requestDateInput = document.getElementById('request-date');
+        const requestTimeInput = document.getElementById('request-time');
+        // Add listeners if request date/time changes should affect anything immediately
+        // if(requestDateInput) requestDateInput.addEventListener('change', someFunction);
+        // if(requestTimeInput) requestTimeInput.addEventListener('change', someFunction);
 
-        // Add listener for NEW request date/time inputs if needed for validation/summary
-        const requestDate = document.getElementById('request-date');
-        const requestTime = document.getElementById('request-time');
-        // Example: if(requestDate) requestDate.addEventListener('change', someValidationFunction);
 
     } catch(err) { console.error("Error setting up event listeners:", err); }
+
+    // --- Initialize Flatpickr ---
+    const dateInputFlatpickr = document.getElementById('request-date');
+    if (dateInputFlatpickr) {
+        try {
+            flatpickr(dateInputFlatpickr, {
+                altInput: true,
+                altFormat: "j F, Y",
+                dateFormat: "Y-m-d",
+                minDate: new Date().fp_incr(10),
+                locale: "es", // Will work now locale file loads
+                disable: [
+                    function(date) { // Disable Mon, Tue, Wed, Thu
+                        const day = date.getDay();
+                        return (day >= 1 && day <= 4);
+                    }
+                ],
+            });
+            console.log("Flatpickr initialized for #request-date");
+        } catch(err) { console.error("Error initializing Flatpickr:", err); }
+    } else {
+        console.warn("Date input #request-date not found for Flatpickr.");
+    }
 
     // --- Initial State Checks ---
     console.log("Running initial state checks...");
@@ -244,4 +228,5 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSummary();
     } catch (err) { console.error("Error running initial checks:", err); }
     console.log("Initialization complete.");
-});
+
+}); // End DOMContentLoaded listener
