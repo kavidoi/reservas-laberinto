@@ -1,140 +1,112 @@
 // functions/get-options.js
-// Fetches records for dropdowns. Includes details for experience types.
-// Last Updated: Monday, April 7, 2025 at 12:05:12 PM -04 Chile Time
+// Fetches records for dropdowns. Includes ALL specified details.
+// Last Updated: Monday, April 7, 2025 at 4:01:42 PM -04 Chile Time
 
 const Airtable = require('airtable');
 
-// --- Configuration ---
 const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID } = process.env;
 
-// --- Table Configurations ---
+// --- Table Configurations with ALL fields needed by Select2 templates ---
 const TABLE_CONFIG = {
-    // For the main dropdown showing scheduled events
-    'scheduled_events': {
-        tableId: 'tblJ604IExFMU3KvW',       // Eventos Table ID
-        displayField: 'Evento',          // Evento Field
-        filterField: 'Modalidad',        // Field for Grupal/Privada in Eventos table
-        statusField: 'Estado Evento',    // Field for filtering by status in Eventos table
-        defaultFilterValue: 'Grupal',    // Value for Modalidad filter
-        statusFilterValue: 'futuro'      // Value for Estado Evento filter
+    'scheduled_events': { // For main dropdown (#widget-oY8v)
+        tableId: 'tblJ604IExFMU3KvW',
+        displayField: 'Evento',           // Primary text
+        filterField: 'Modalidad',         // Field for 'Grupal' filter
+        statusField: 'Estado Evento',     // Field for 'futuro' filter
+        defaultFilterValue: 'Grupal',
+        statusFilterValue: 'futuro',
+        // Fields needed for display template
+        detailFields: ['Fecha', 'Hora Inicio', 'Hora Término', 'Descripción', 'Precio']
     },
-    // For the "Solicitar otra fecha" dropdown showing experience types
-    'experience_types': {
-        tableId: 'tblaBc1QhlksnV5Qb',      // Experiencias Table ID
-        displayField: 'Experiencia',     // Verified Name Field
-        filterField: 'Modalidad',        // ASSUMED Field for Grupal/Privada in Experiencias table (Please VERIFY)
-        defaultFilterValue: 'Grupal',    // Value for filtering Grupal types
-        detailFields: ['Descripción', 'Precio'] // Verified Fields for details
+    'experience_types': { // For "Solicitar" dropdown (#request-experience-type)
+        tableId: 'tblaBc1QhlksnV5Qb',
+        displayField: 'Experiencia',      // Primary text
+        filterField: 'Modalidad',         // Field for 'Grupal' filter (Ensure exists in this table)
+        defaultFilterValue: 'Grupal',
+        // Fields needed for display template AND end time calculation
+        detailFields: ['Descripción', 'Precio', 'Duración'] // Assumes 'Duración' is the field name
     },
-    // For the food dropdown
-    'food': {
-        tableId: 'tblz3fbgTFnqfCGi9',       // Verified Food Items Table ID
-        displayField: 'Name',            // Verified Display Field
+    'food': { // For food dropdown (#widget-3vTL)
+        tableId: 'tblz3fbgTFnqfCGi9',
+        displayField: 'Name',
+        // detailFields: [] // No extra details requested for food
     }
 };
 
-// Basic check for essential environment variables
-if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID) { /* ... error handling ... */ return; }
-
-// Initialize Airtable client
+if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID) { /* ... error handling ... */ }
 const base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
 
-// --- Serverless Function Handler ---
 exports.handler = async (event, context) => {
-    if (event.httpMethod !== 'GET') {
-        return { statusCode: 405, headers: { 'Allow': 'GET', "Content-Type": "application/json" }, body: JSON.stringify({ message: 'Method Not Allowed. Please use GET.' }) };
-    }
+    if (event.httpMethod !== 'GET') { /* ... return 405 ... */ }
 
     const tableType = event.queryStringParameters?.tableType;
     const filterValue = event.queryStringParameters?.filterValue;
 
-    if (!tableType || !TABLE_CONFIG[tableType]) {
-        return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: `Bad Request: Invalid or missing 'tableType'. Valid types: ${Object.keys(TABLE_CONFIG).join(', ')}` }) };
-    }
-
+    if (!tableType || !TABLE_CONFIG[tableType]) { /* ... return 400 ... */ }
     const config = TABLE_CONFIG[tableType];
-    if (!config.tableId || !config.displayField) {
-         console.error(`Configuration error: Missing tableId or displayField for tableType '${tableType}'`);
-         return { statusCode: 500, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: "Server configuration error." }) };
-    }
-    const table = base(config.tableId);
+    if (!config.tableId || !config.displayField) { /* ... return 500 ... */ }
 
-    // Determine fields to fetch
+    const table = base(config.tableId);
+    // --- Determine fields to fetch ---
     const fieldsToFetch = [config.displayField];
     if (Array.isArray(config.detailFields)) {
-        fieldsToFetch.push(...config.detailFields); // Add detail fields if specified
+        fieldsToFetch.push(...config.detailFields); // Add ALL detail fields
+    }
+    // Add filter fields only if they aren't already included
+    if (config.filterField && !fieldsToFetch.includes(config.filterField)) {
+        fieldsToFetch.push(config.filterField);
+    }
+     if (config.statusField && !fieldsToFetch.includes(config.statusField)) {
+        fieldsToFetch.push(config.statusField);
     }
 
-    // Prepare Airtable select options
+    // --- Prepare Airtable select options ---
     const selectOptions = {
-        fields: fieldsToFetch,
+        fields: fieldsToFetch, // Fetch display + detail + filter fields
         sort: [{ field: config.displayField, direction: 'asc' }],
         maxRecords: 200,
     };
 
-    // Apply filter(s) - Modified for clarity and different table needs
+    // --- Apply filter(s) ---
     let filterParts = [];
     const effectiveFilterValue = filterValue || config.defaultFilterValue;
-
-    // Apply Modalidad filter if specified
     if (config.filterField && effectiveFilterValue) {
         filterParts.push(`{${config.filterField}} = '${effectiveFilterValue}'`);
     }
-    // Apply Status filter only for scheduled_events
     if (tableType === 'scheduled_events' && config.statusField && config.statusFilterValue) {
         filterParts.push(`{${config.statusField}} = '${config.statusFilterValue}'`);
     }
+    if (filterParts.length > 1) { selectOptions.filterByFormula = `AND(${filterParts.join(', ')})`; }
+    else if (filterParts.length === 1) { selectOptions.filterByFormula = filterParts[0]; }
 
-    // Combine filters with AND() if multiple exist
-    if (filterParts.length > 1) {
-        selectOptions.filterByFormula = `AND(${filterParts.join(', ')})`;
-    } else if (filterParts.length === 1) {
-        selectOptions.filterByFormula = filterParts[0];
-    }
-
-    if (selectOptions.filterByFormula) {
-        console.log(`Workspaceing from ${config.tableId} with filter: ${selectOptions.filterByFormula}`);
-    } else {
-         console.log(`Workspaceing options from ${config.tableId} without specific filter.`);
-    }
+    if (selectOptions.filterByFormula) { console.log(`Workspaceing from ${config.tableId} with filter: ${selectOptions.filterByFormula}`); }
+    else { console.log(`Workspaceing options from ${config.tableId} without specific filter.`); }
 
 
     try {
         const records = await table.select(selectOptions).all();
 
-        // Map records based on whether detailFields were requested
+        // --- Map records including details ---
         const options = records.map(record => {
-            const baseOption = {
-                id: record.id,
-                name: record.get(config.displayField) || `Unnamed (ID: ${record.id})`
+            const optionData = {
+                id: record.id, // Used as the value
+                text: record.get(config.displayField) || `Unnamed (ID: ${record.id})`, // Primary text for Select2
+                // Add all other fetched fields to be accessible in templates
             };
-            // If detailFields are configured, fetch and add them
-            if (Array.isArray(config.detailFields)) {
-                baseOption.details = {};
-                config.detailFields.forEach(field => {
-                    baseOption.details[field] = record.get(field); // Will be null if field is empty/doesn't exist
-                });
-            }
-            return baseOption;
+            fieldsToFetch.forEach(field => {
+                // Add field value if it's not the primary display field already included as 'text'
+                if(field !== config.displayField) {
+                    optionData[field] = record.get(field); // Store under original field name
+                }
+            });
+            return optionData;
         });
 
         console.log(`Successfully fetched ${options.length} options for type '${tableType}'.`);
+        return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ results: options }) }; // Wrap in 'results' for Select2 AJAX
 
-        return {
-            statusCode: 200,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(options),
-        };
-
-    } catch (error) {
-        console.error(`Error fetching data from Airtable table ${config.tableId} for type '${tableType}':`, error);
-        return {
-            statusCode: error.statusCode || 500,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                message: `Error fetching options for '${tableType}'. Check config.`,
-                error: process.env.NODE_ENV !== 'production' ? (error.message || "Internal Server Error") : "An internal error occurred fetching options."
-            }),
-        };
+    } catch (error) { /* ... error handling ... */
+         console.error(`Error fetching data from Airtable table ${config.tableId} for type '${tableType}':`, error);
+        return { statusCode: error.statusCode || 500, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ /* ... */ }) };
     }
 };

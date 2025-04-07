@@ -6,6 +6,8 @@
     <title>Reserva de Experiencia - Vinos Laberinto</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/fonts.css">
     </head>
@@ -25,26 +27,17 @@
                 <div id="widget-oY8v-container" class="mb-3">
                     <label for="widget-oY8v" class="form-label fw-bold"><h4>Experiencias grupales</h4></label>
                     <p class="form-text">Selecciona una de las experiencias grupales disponibles.</p>
-                    <select class="form-select mb-2" id="widget-oY8v">
-                        <option value="" selected disabled>Selecciona...</option>
+                    {/* Added select2-dropdown class */}
+                    <select class="form-select select2-dropdown mb-2" id="widget-oY8v" style="width: 100%;">
+                        {/* Options will be loaded via Select2 AJAX */}
                     </select>
                     <button type="button" class="btn btn-secondary btn-sm" id="btn-request-other-date">
                         Solicitar otra fecha
                     </button>
                  </div>
                 <hr id="widget-2mrE">
-                <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" role="switch" id="widget-grSj">
-                    <label class="form-check-label" for="widget-grSj">Prefiero activar una experiencia exclusiva para mi grupo.</label>
-                </div>
-                <div id="widget-3duJ-container" class="mb-3 d-none">
-                     <label class="form-label fw-bold">Experiencia Exclusiva</label>
-                     <p>Agenda tu experiencia exclusiva según disponibilidad.</p>
-                     <button type="button" class="btn btn-outline-primary" id="btn-agenda-exclusiva">
-                        Agendar Experiencia Exclusiva
-                     </button>
-                     <small class="form-text d-block mt-1">Agendado: <span id="subform-3duJ-status">No</span></small>
-                 </div>
+                <div class="form-check form-switch mb-3">...</div>
+                <div id="widget-3duJ-container" class="mb-3 d-none">...</div>
                  <div class="d-flex justify-content-end mt-4">
                     <button type="button" class="btn btn-primary" id="btn-q1gj-continue">
                         Continuar la reserva
@@ -57,209 +50,73 @@
                 <hr>
                 <div class="mb-3">
                     <label for="request-experience-type" class="form-label fw-bold">Tipo de Experiencia Grupal a Solicitar</label>
-                    <select class="form-select" id="request-experience-type" required>
-                        <option value="" selected disabled>Cargando tipos...</option>
-                        </select>
+                    {/* Added select2-dropdown class */}
+                    <select class="form-select select2-dropdown" id="request-experience-type" required style="width: 100%;">
+                        {/* Options will be loaded via Select2 AJAX */}
+                    </select>
                     <div class="invalid-feedback">Por favor selecciona un tipo de experiencia.</div>
                 </div>
-                <div class="alert alert-secondary small">
-                    <p class="mb-1"><strong>Reglas de Agendamiento Grupal:</strong></p>
-                    <ul class="mb-0">
-                        <li>Debe ser agendado para un <strong>Viernes, Sábado o Domingo</strong>.</li>
-                        <li>Se requiere un mínimo de <strong>10 días de anticipación</strong>.</li>
-                        <li>Horarios preferentes: Mañana (11:00-12:00), Tarde (15:00-16:00).</li>
-                    </ul>
-                </div>
+                <div class="alert alert-secondary small">... Rules text ...</div>
                  <div class="d-flex justify-content-between mt-4">
-                    <button type="button" class="btn btn-outline-secondary" id="btn-request-cancel">
-                        Cancelar Solicitud
-                    </button>
-                    <button type="button" class="btn btn-primary" id="btn-request-select-datetime">
-                        Seleccionar Fecha/Hora
-                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="btn-request-cancel">Cancelar Solicitud</button>
+                    <button type="button" class="btn btn-primary" id="btn-request-select-datetime">Seleccionar Fecha/Hora</button>
                 </div>
             </div>
 
             <div id="step-request-select-datetime" class="form-step d-none">
-                <h2>Seleccionar Fecha y Hora Sugerida</h2>
+                <h2>Seleccionar Fecha y Hora</h2>
                 <hr>
-                 <div class="alert alert-info small">Por favor, selecciona una fecha (Viernes-Domingo, 10+ días desde hoy) y sugiere una hora de inicio (preferentemente 11-12 o 15-16).</div>
+                 <div class="alert alert-info small">Por favor, selecciona una fecha (Viernes-Domingo, 10+ días desde hoy) y una hora de inicio de las opciones disponibles.</div>
                  <div class="row g-3">
                     <div class="col-md-6 mb-3">
-                        <label for="request-date" class="form-label fw-bold">Fecha Sugerida<span class="text-danger">*</span></label>
+                        <label for="request-date" class="form-label fw-bold">Fecha<span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="request-date" placeholder="Selecciona una fecha..." required>
                          <div class="invalid-feedback">Por favor selecciona una fecha válida.</div>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="request-time" class="form-label fw-bold">Hora de Inicio Sugerida<span class="text-danger">*</span></label>
-                        <input type="time" class="form-control" id="request-time" step="1800" required>
-                        <small class="form-text text-muted">Incrementos de 30 min. Preferido: 11:00-12:00 o 15:00-16:00.</small>
-                         <div class="invalid-feedback">Por favor selecciona una hora válida.</div>
+                        <label class="form-label fw-bold">Hora de Inicio deseada<span class="text-danger">*</span></label>
+                         <div id="time-bubbles-container" class="d-flex flex-wrap gap-2">
+                            {/* Use data-time in HH:MM format */}
+                            <button type="button" class="btn btn-outline-primary btn-sm time-bubble" data-time="11:00">11:00 AM</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm time-bubble" data-time="11:30">11:30 AM</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm time-bubble" data-time="12:00">12:00 PM</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm time-bubble" data-time="12:30">12:30 PM</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm time-bubble" data-time="15:00">3:00 PM</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm time-bubble" data-time="15:30">3:30 PM</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm time-bubble" data-time="16:30">4:30 PM</button>
+                         </div>
+                         {/* Hidden input to store selected time for form submission */}
+                         <input type="hidden" id="request-time-selected" required>
+                         <div class="invalid-feedback">Por favor selecciona una hora de inicio.</div>
+                         {/* Calculated End Time Display */}
+                         <div class="mt-2">
+                            <small class="text-muted">Hora de término estimada: <strong id="calculated-end-time">--:--</strong></small>
+                         </div>
                     </div>
                  </div>
-                 <div class="mb-3">
-                    <label for="request-contact-name" class="form-label fw-bold">Tu Nombre<span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="request-contact-name" required>
-                 </div>
-                  <div class="mb-3">
-                    <label for="request-contact-email" class="form-label fw-bold">Tu Email<span class="text-danger">*</span></label>
-                    <input type="email" class="form-control" id="request-contact-email" required>
-                    <small class="form-text text-muted">Te contactaremos a este email para confirmar.</small>
-                 </div>
+                 {/* REMOVED Name and Email Inputs */}
                  <div id="request-submission-error" class="alert alert-danger mt-3 d-none" role="alert"></div>
                  <div class="d-flex justify-content-between mt-4">
-                    <button type="button" class="btn btn-outline-secondary" id="btn-request-datetime-back">
-                        Volver (Seleccionar Tipo)
-                    </button>
-                    <button type="button" class="btn btn-success" id="submit-request-button">
-                        Enviar Solicitud de Fecha
-                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="btn-request-datetime-back">Volver (Seleccionar Tipo)</button>
+                    <button type="button" class="btn btn-success" id="submit-request-button">Enviar Solicitud de Fecha</button>
                 </div>
             </div>
 
-             <div id="step-request-confirm" class="form-step d-none">
-                 <div class="text-center p-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-calendar-check text-success mb-3" viewBox="0 0 16 16">
-                        <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
-                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
-                    </svg>
-                    <h2>Solicitud Enviada</h2>
-                    <p>Gracias por tu solicitud para agendar una nueva fecha. Revisaremos la disponibilidad y te contactaremos pronto a <span id="confirm-request-email" class="fw-bold">tu email</span>.</p>
-                    <p>Solicitaste:</p>
-                    <p><strong id="confirm-request-details">Experiencia - Fecha - Hora</strong></p>
-                    <button class="btn btn-primary mt-4" id="btn-request-confirm-home">
-                        Volver al Inicio
-                    </button>
-                </div>
-             </div>
+             <div id="step-request-confirm" class="form-step d-none">...</div>
 
+            <div id="step-bSoz" class="form-step d-none">...</div>
+            <div id="step-2sff" class="form-step d-none">...</div>
+            <div id="step-qf5J" class="form-step d-none">...</div>
+            <div id="step-checkout-placeholder" class="form-step d-none">...</div>
+            <div id="step-gr5a" class="form-step d-none">...</div>
+            <div id="subform-group-config" class="form-step d-none">...</div>
+            <div id="subform-scheduling" class="form-step d-none">...</div>
 
-            <div id="step-bSoz" class="form-step d-none">
-                <h2>Reserva de experiencia - Grupo</h2>
-                <hr>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Configuración del Grupo</label>
-                    <p class="form-text">Te preguntaremos datos de la cantidad de personas y restricciones.</p>
-                    <button type="button" id="btn-aZoD-add" class="btn btn-outline-primary">Configurar grupo</button>
-                    <button type="button" id="btn-aZoD-edit" class="btn btn-outline-secondary d-none">Editar grupo</button>
-                     <small class="form-text d-block mt-1">Grupo configurado: <span id="subform-aZoD-status">No</span></small>
-                </div>
-                 <div class="d-flex justify-content-between mt-4">
-                    <button type="button" class="btn btn-outline-secondary" id="btn-bsoz-back">Volver</button>
-                    <button type="button" class="btn btn-primary" id="btn-bsoz-continue">Siguiente: Comida</button>
-                </div>
-            </div>
-
-             <div id="step-2sff" class="form-step d-none">
-                <h2>Reserva de experiencia - Almuerzo o Cena</h2>
-                <hr>
-                <p id="widget-nRxz" class="alert alert-info d-none">Cuando terminan nuestras experiencias grupales...</p>
-                <p id="widget-kJ8C" class="alert alert-warning d-none">Para la experiencia exclusiva...</p>
-                <p id="widget-5A7s" class="alert alert-warning d-none">De nuestra experiencia no es posible...</p>
-                <div class="mb-3">
-                    <label for="widget-3vTL" class="form-label fw-bold">Comida Adicional (Opcional)</label>
-                    <select class="form-select" id="widget-3vTL">
-                        <option value="" selected disabled>Cargando opciones de comida...</option>
-                    </select>
-                     <small class="form-text">Selecciona si deseas agregar almuerzo o cena...</small>
-                </div>
-                <div class="d-flex justify-content-between mt-4">
-                    <button type="button" class="btn btn-outline-secondary" id="btn-2sff-back">Volver</button>
-                    <button type="button" class="btn btn-primary" id="btn-2sff-continue">Ver Resumen y Pagar Abono</button>
-                </div>
-            </div>
-
-            <div id="step-qf5J" class="form-step d-none">
-                 <h2>Resumen de Reserva</h2>
-                 <hr>
-                 <div class="mb-3 border p-3 rounded">
-                     <p><strong>Fecha Reserva:</strong> <span id="summary-fecha">Pendiente</span></p>
-                     <p><strong>Tipo Experiencia:</strong> <span id="summary-experiencia">Pendiente</span></p>
-                     <p><strong>Tamaño grupo:</strong> <span id="summary-tamano">Pendiente</span></p>
-                     <p><strong>Comida Adicional:</strong> <span id="summary-comida">Pendiente</span></p>
-                     <hr>
-                     <p><strong>Precio total estimado:</strong> $<span id="summary-precio-total">0</span> CLP</p>
-                     <p><strong>Descuento total aplicado:</strong> $<span id="summary-descuento">0</span> CLP</p>
-                     <p><strong>Abono a pagar:</strong> $<span id="summary-abono">0</span> CLP</p>
-                </div>
-                 <div class="mb-3">
-                    <label for="widget-3KPv" class="form-label">Código descuento (Opcional)</label>
-                    <input type="text" class="form-control" id="widget-3KPv" placeholder="Ingresa tu código">
-                </div>
-                <div class="d-flex justify-content-between mt-4">
-                     <button type="button" class="btn btn-outline-secondary" id="btn-qf5j-back">Volver</button>
-                    <button type="button" class="btn btn-success" id="btn-qf5j-continue">Proceder al Pago del Abono</button>
-                </div>
-            </div>
-
-            <div id="step-checkout-placeholder" class="form-step d-none">
-                 <h2>Pago de Abono</h2>
-                 <hr>
-                 <div class="alert alert-warning">
-                     <strong>Abono requerido:</strong> $<span id="checkout-abono-amount">0</span> CLP.<p class="mt-2">Asegura tu lugar...</p><p class="mt-3 text-muted small">El pago real con tarjeta no está implementado...</p>
-                 </div>
-                 <div class="text-center mt-4 mb-3">
-                     <button id="submit-button" class="btn btn-lg btn-success">Confirmar Reserva</button>
-                     <div id="submission-error" class="alert alert-danger mt-3 d-none" role="alert">Error al guardar la reserva.</div>
-                 </div>
-                 <div class="d-flex justify-content-start mt-4">
-                     <button type="button" class="btn btn-outline-secondary" id="btn-checkout-back">Volver</button>
-                 </div>
-            </div>
-
-            <div id="step-gr5a" class="form-step d-none">
-                 <div class="text-center p-4">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-check-circle-fill text-success mb-3" viewBox="0 0 16 16">...</svg>
-                     <h2>¡Gracias por tu reserva!</h2>
-                     <p>Hemos recibido y guardado tu información...</p>
-                     <div class="mt-3 text-start border p-3 rounded bg-white">
-                        <h5>Resumen Guardado:</h5>
-                        <p><strong>Experiencia:</strong> <span id="final-summary-experiencia">Pendiente</span></p>
-                        <p><strong>Fecha/Hora:</strong> <span id="final-summary-fecha">Pendiente</span></p>
-                        <p><strong>Grupo:</strong> <span id="final-summary-grupo">Pendiente</span></p>
-                        <p><strong>Abono Registrado:</strong> $<span id="final-summary-abono">0</span> CLP</p>
-                        <p class="small text-muted">ID Registro Airtable: <span id="final-summary-record-id">Pendiente</span></p>
-                    </div>
-                     <button class="btn btn-primary mt-4" id="btn-gr5a-new-booking">Hacer otra reserva</button>
-                 </div>
-             </div>
-
-             <div id="subform-group-config" class="form-step d-none">
-                 <h2>Configuración del Grupo</h2>
-                 <hr>
-                 <div class="alert alert-secondary small">...</div>
-                 <input type="hidden" id="widget-kkTo" value="organizer_rec_id">
-                 <div class="mb-3">...</div>
-                 <div id="group-details-section" class="d-none">...</div>
-                 <div id="single-attendee-section" class="mb-3">...</div>
-                 <div id="group-members-section" class="mb-3 d-none">...</div>
-                 <div class="mb-3">...</div>
-                 <div class="d-flex justify-content-between mt-4">
-                    <button type="button" class="btn btn-outline-secondary" id="btn-group-config-cancel">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="btn-group-config-save">Guardar Info Grupo</button>
-                 </div>
-            </div>
-
-            <div id="subform-scheduling" class="form-step d-none">
-                <h2 id="scheduling-title">Agendar Experiencia</h2>
-                <hr>
-                 <div class="alert alert-secondary small">...</div>
-                 <div class="mb-3">...</div>
-                 <h4>Selecciona Fecha y Hora</h4>
-                 <div class="alert alert-info">...</div>
-                 <div class="row g-3">...</div>
-                 <hr>
-                 <h4>Tu información</h4>
-                 <div class="row g-3 mb-3">...</div>
-                 <div class="d-flex justify-content-between mt-4">
-                    <button type="button" class="btn btn-outline-secondary" id="btn-scheduling-cancel">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="btn-scheduling-confirm">Confirmar Horario</button>
-                 </div>
-            </div>
-
-        </div> </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        </div> </div> <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> {/* Added jQuery (Select2 dependency) */}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> {/* Added Select2 JS */}
     <script src="js/script.js"></script>
 </body>
 </html>
