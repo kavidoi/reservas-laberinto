@@ -1,7 +1,7 @@
 // functions/get-options/get-options.js
 // Fetches records from specified Airtable tables to populate dropdowns.
-// Using corrected Spanish field names based on diagnosis.
-// Last Updated: Monday, April 7, 2025 at 2:03:08 AM -04 (Vitacura, Santiago Metropolitan Region, Chile)
+// Using verified Table IDs and Field Names.
+// Last Updated: Monday, April 7, 2025 at 2:30:23 AM -04 (Vitacura, Santiago Metropolitan Region, Chile)
 
 const Airtable = require('airtable');
 
@@ -9,17 +9,17 @@ const Airtable = require('airtable');
 const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID } = process.env;
 
 // --- Table Configurations ---
-// Mapping using corrected Spanish field names
+// Mapping using user-verified Table IDs and Field Names
 const TABLE_CONFIG = {
     'experiences': {
-        tableId: 'tblaBc1QhlksnV5Qb', // Experiences Table ID
-        displayField: 'Nombre Experiencia', // CORRECTED Display Field
-        filterField: 'Tipo de Experiencia', // CORRECTED Filter Field
-        defaultFilterValue: 'Grupal' // Value for filtering group experiences
+        tableId: 'tblJ604IExFMU3KvW',       // Verified Experiences Table ID
+        displayField: 'Evento',          // Verified Display Field
+        filterField: 'Grupal/Privada',   // Verified Filter Field
+        defaultFilterValue: 'Grupal'     // Value for filtering group experiences
     },
     'food': {
-        tableId: 'tblz3fbgTFnqfCGi9', // Food Items Table ID
-        displayField: 'Nombre Opción', // CORRECTED Display Field
+        tableId: 'tblz3fbgTFnqfCGi9',       // Verified Food Items Table ID
+        displayField: 'Name',            // Verified Display Field
     }
 };
 
@@ -41,7 +41,7 @@ const base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
 exports.handler = async (event, context) => {
     // Only allow GET requests
     if (event.httpMethod !== 'GET') {
-        return { statusCode: 405, headers: { 'Allow': 'GET' }, body: 'Method Not Allowed' };
+        return { statusCode: 405, headers: { 'Allow': 'GET', "Content-Type": "application/json" }, body: JSON.stringify({ message: 'Method Not Allowed. Please use GET.' }) };
     }
 
     // Get table type and optional filter from query parameters
@@ -50,21 +50,16 @@ exports.handler = async (event, context) => {
 
     // Validate tableType parameter
     if (!tableType || !TABLE_CONFIG[tableType]) {
-        return {
-             statusCode: 400,
-             headers: { "Content-Type": "application/json" },
-             body: JSON.stringify({ message: `Bad Request: Invalid or missing 'tableType'. Valid types: ${Object.keys(TABLE_CONFIG).join(', ')}` })
-        };
+        return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: `Bad Request: Invalid or missing 'tableType'. Valid types: ${Object.keys(TABLE_CONFIG).join(', ')}` }) };
     }
 
     const config = TABLE_CONFIG[tableType];
+    if (!config.tableId || !config.displayField) {
+         console.error(`Configuration error: Missing tableId or displayField for tableType '${tableType}'`);
+         return { statusCode: 500, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: "Server configuration error." }) };
+    }
     const table = base(config.tableId);
-
-    // Determine which fields to retrieve from Airtable
-    // We only absolutely need the displayField. Airtable record ID comes automatically.
     const fieldsToFetch = [config.displayField];
-    // Include filter field only if debugging the filter itself
-    // if (config.filterField) { fieldsToFetch.push(config.filterField); }
 
     // Prepare Airtable select options
     const selectOptions = {
@@ -76,14 +71,11 @@ exports.handler = async (event, context) => {
     // Apply filter if configured
     const effectiveFilterValue = filterValue || config.defaultFilterValue;
     if (config.filterField && effectiveFilterValue) {
-        // Standard Airtable formula syntax: {Field Name with Spaces} = 'Value'
-        // No extra quotes needed around the {field name} part.
-        selectOptions.filterByFormula = `{${config.filterField}} = '${effectiveFilterValue}'`;
+        selectOptions.filterByFormula = `{<span class="math-inline">\{config\.filterField\}\} \= '</span>{effectiveFilterValue}'`;
         console.log(`Workspaceing from ${config.tableId} with filter: ${selectOptions.filterByFormula}`);
     } else {
          console.log(`Workspaceing options from ${config.tableId} without specific filter.`);
     }
-
 
     try {
         // Fetch all records matching the select options
@@ -92,11 +84,10 @@ exports.handler = async (event, context) => {
         // Map records to the format needed by the frontend: { id: recordId, name: displayFieldValue }
         const options = records.map(record => ({
             id: record.id,
-            // Use the displayField from config, provide fallback
             name: record.get(config.displayField) || `Unnamed (ID: ${record.id})`
         }));
 
-        console.log(`Successfully fetched ${options.length} options for type '${tableType}'.`);
+        console.log(`Successfully fetched <span class="math-inline">\{options\.length\} options for type '</span>{tableType}'.`);
 
         // Return the options array as JSON
         return {
@@ -106,15 +97,14 @@ exports.handler = async (event, context) => {
         };
 
     } catch (error) {
-        console.error(`Error fetching data from Airtable table ${config.tableId} for type '${tableType}':`, error);
+        console.error(`Error fetching data from Airtable table <span class="math-inline">\{config\.tableId\} for type '</span>{tableType}':`, error);
         // TODO: Consider sending errors to Sentry if it's configured
 
         return {
             statusCode: error.statusCode || 500,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                message: `Error fetching options for '${tableType}'. Failed field was likely '${config.displayField}' or filter field '${config.filterField}'.`,
-                // Avoid exposing detailed internal errors in production
+                message: `Error fetching options for '<span class="math-inline">\{tableType\}'\. Check field names \('</span>{config.displayField}', filter: '<span class="math-inline">\{config\.filterField\}'\) and table ID \('</span>{config.tableId}').`,
                 error: process.env.NODE_ENV !== 'production' ? (error.message || "Internal Server Error") : "An internal error occurred fetching options."
             }),
         };
