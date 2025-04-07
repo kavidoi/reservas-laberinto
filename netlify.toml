@@ -10,9 +10,6 @@
 
 # Environment variables specific to the production context
 [context.production.environment]
-  # Your existing Airtable vars...
-  AIRTABLE_API_KEY = "YOUR_AIRTABLE_API_KEY_HERE" # Use Netlify UI for secrets!
-  AIRTABLE_BASE_ID = "appqWloaGKCaVKck4"
   AIRTABLE_TABLE_RESERVAS = "tblJSKGb4IBeyUwyo"
   AIRTABLE_TABLE_EXPERIENCES = "tblaBc1QhlksnV5Qb"
   AIRTABLE_TABLE_FOOD = "tblz3fbgTFnqfCGi9"

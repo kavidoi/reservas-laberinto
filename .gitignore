@@ -138,3 +138,6 @@ dist
 # Added
 .DS_Store
 .qodo/
+
+# .gitignore (add this line if missing)
+.qodo/
