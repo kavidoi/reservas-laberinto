@@ -8,6 +8,11 @@
   command = "npm install"
   # Directory containing Netlify functions relative to the base directory
   functions = "functions"
+  # Function bundling configuration
+  [functions]
+    node_bundler = "esbuild"
+    included_files = ["node_modules/airtable/**"]
+    directory = "functions"
   # Directory containing static site assets to deploy relative to the base directory
   publish = "public"
   # Environment variables for the build process itself
