@@ -25,5 +25,14 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
 
 
-# Note: Added timestamp comment
-# Last Updated: Sunday, April 6, 2025 at 11:21:00 PM -04 (Vitacura, Santiago Metropolitan Region, Chile)
+# Redirects/Rewrites
+[[redirects]]
+  # Map requests from the user-friendly /api/* path...
+  from = "/api/*"
+  # ...to the actual Netlify function location.
+  # The ':splat' captures everything after /api/ and passes it on.
+  # Status 200 makes it an internal rewrite (proxy) instead of a browser redirect.
+  to = "/.netlify/functions/:splat"
+  status = 200
+  # Optional: Force it if other rules might interfere, unlikely needed here
+  # force = true
