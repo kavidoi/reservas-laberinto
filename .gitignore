@@ -141,3 +141,5 @@ dist
 
 # .gitignore (add this line if missing)
 .qodo/
+# Local Netlify folder
+.netlify
