@@ -1,7 +1,7 @@
 // public/js/script.js
 // Handles form navigation, conditional logic, dynamic dropdown population, summary updates, and submission.
-// Removed selectedIndex=0 force after populating dropdown. Added console log for fetched options.
-// Last Updated: Monday, April 7, 2025 at 11:54:46 AM -04 Chile Time
+// Uses addEventListener instead of inline onclick attributes. Ensures const initializers.
+// Last Updated: Monday, April 7, 2025 at 11:45:32 AM -04 Chile Time
 
 let currentStepId = 'step-q1GJ';
 let historyStack = ['step-q1GJ'];
@@ -39,11 +39,9 @@ async function populateDropdown(selectElementId, tableType, filterValue = null) 
         if (!responseContentType || !responseContentType.includes("application/json")) { throw new Error(`Received non-JSON response from ${apiUrl}`); }
 
         const options = await response.json();
-        // *** ADDED CONSOLE LOG TO SEE FETCHED DATA ***
-        console.log(`Workspaceed options for ${selectElementId}:`, options);
+        console.log(`Workspaceed options for ${selectElementId}:`, options); // Log fetched data
 
-        // Restore placeholder (already marked as selected and disabled)
-        selectElement.innerHTML = `<option value="<span class="math-inline">\{defaultOptionValue\}" selected disabled\></span>{originalPlaceholderText}</option>`;
+        selectElement.innerHTML = `<option value="${defaultOptionValue}" selected disabled>${originalPlaceholderText}</option>`; // Restore placeholder
 
         if (options && Array.isArray(options) && options.length > 0) {
             options.forEach(option => {
@@ -55,10 +53,8 @@ async function populateDropdown(selectElementId, tableType, filterValue = null) 
                 } else { console.warn("Received invalid option data:", option); }
             });
             console.log(`Successfully populated #${selectElementId} with ${options.length} options.`);
-            // REMOVED: selectElement.selectedIndex = 0; // Let browser handle default display
         } else if (options && options.length === 0) {
              selectElement.innerHTML = `<option value="${defaultOptionValue}" selected disabled>No hay opciones disponibles</option>`;
-             // REMOVED: selectElement.selectedIndex = 0;
              console.log(`No options found for #${selectElementId}.`);
         } else { throw new Error("Invalid data format received from options API."); }
 
@@ -74,7 +70,7 @@ async function populateDropdown(selectElementId, tableType, filterValue = null) 
 async function populateRequestExperienceTypes() {
     const selectElementId = 'request-experience-type';
     const tableType = 'experiences';
-    const filterValue = 'Grupal'; // Only allow requesting Grupal types
+    const filterValue = 'Grupal';
 
     const selectElement = document.getElementById(selectElementId);
     if (!selectElement) { return; }
@@ -84,7 +80,7 @@ async function populateRequestExperienceTypes() {
 
     let apiUrl = `/api/get-options?tableType=${encodeURIComponent(tableType)}`;
      if (filterValue) { apiUrl += `&filterValue=${encodeURIComponent(filterValue)}`; }
-    // NOTE: Fetches experiences based on Modalidad = 'Grupal' only for the request form.
+    // Fetches experiences based on Modalidad = 'Grupal' only.
 
     try {
         const response = await fetch(apiUrl);
@@ -92,9 +88,9 @@ async function populateRequestExperienceTypes() {
         if (!response.ok) { throw new Error(`HTTP error ${response.status}`); }
         if (!responseContentType || !responseContentType.includes("application/json")) { throw new Error(`Received non-JSON response from ${apiUrl}`); }
         const options = await response.json();
-        console.log(`Workspaceed options for ${selectElementId}:`, options); // Log fetched data
+        console.log(`Workspaceed options for ${selectElementId}:`, options);
 
-        selectElement.innerHTML = `<option value="" selected disabled>Selecciona tipo de experiencia...</option>`; // Restore placeholder
+        selectElement.innerHTML = `<option value="" selected disabled>Selecciona tipo de experiencia...</option>`;
 
         if (options && Array.isArray(options) && options.length > 0) {
             options.forEach(option => {
@@ -105,7 +101,6 @@ async function populateRequestExperienceTypes() {
                     selectElement.appendChild(optionElement);
                 }
             });
-             // REMOVED: selectElement.selectedIndex = 0;
         } else {
              selectElement.innerHTML = `<option value="" selected disabled>No hay tipos disponibles</option>`;
         }
@@ -138,4 +133,86 @@ function gatherFormData() { const formData = {}; try { const isExclusive = docum
 async function submitReservation() { const submitButton = document.getElementById('submit-button'); const errorDiv = document.getElementById('submission-error'); if (!submitButton || !errorDiv) { console.error("Submit button or error display element not found."); return; } submitButton.disabled = true; submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Confirmando...'; hideError(errorDiv); const formData = gatherFormData(); if (!formData) { showError(errorDiv, "Error al recopilar datos del formulario."); submitButton.disabled = false; submitButton.textContent = 'Confirmar Reserva'; return; } const backendUrl = '/api/submit-reserva'; try { const response = await fetch(backendUrl, { method: 'POST', headers: { 'Content-Type': 'application/json', }, body: JSON.stringify(formData), }); const result = await response.json(); if (response.ok) { console.log('Submission successful:', result); setText('final-summary-record-id', result.recordId || 'N/A'); goToStep('step-gr5a'); } else { console.error(`Submission failed (${response.status}):`, result); showError(errorDiv, result.message || `Error ${response.status}: Ocurrió un problema al guardar.`); submitButton.disabled = false; submitButton.textContent = 'Confirmar Reserva'; } } catch (error) { console.error('Network or fetch error:', error); showError(errorDiv, 'Error de red al guardar la reserva. Verifica tu conexión e inténtalo de nuevo.'); submitButton.disabled = false; submitButton.textContent = 'Confirmar Reserva'; } }
 
 // --- Submit Date Request to Backend ---
-async function submitDateRequest() { const submitButton = document.getElementById('submit-request-button'); const error
+async function submitDateRequest() { const submitButton = document.getElementById('submit-request-button'); const errorDiv = document.getElementById('request-submission-error'); const experienceSelect = document.getElementById('request-experience-type'); const dateInput = document.getElementById('request-date'); const timeInput = document.getElementById('request-time'); const nameInput = document.getElementById('request-contact-name'); const emailInput = document.getElementById('request-contact-email'); let isValid = true; hideError(errorDiv); [experienceSelect, dateInput, timeInput, nameInput, emailInput].forEach(input => { if (!input?.value) { input?.classList.add('is-invalid'); isValid = false; } else { input?.classList.remove('is-invalid'); } }); if (!isValid) { showError(errorDiv, "Por favor completa todos los campos requeridos."); return; } submitButton.disabled = true; submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enviando...'; const requestData = { experienceTypeId: experienceSelect.value, experienceTypeName: experienceSelect.options[experienceSelect.selectedIndex]?.text, requestedDate: dateInput.value, requestedTime: timeInput.value, requesterName: nameInput.value, requesterEmail: emailInput.value }; console.log("Date Request Data:", requestData); const backendUrl = '/api/create-event'; try { const response = await fetch(backendUrl, { method: 'POST', headers: { 'Content-Type': 'application/json', }, body: JSON.stringify(requestData), }); const result = await response.json(); if (response.ok) { console.log('Date request submission successful:', result); setText('confirm-request-email', requestData.requesterEmail); setText('confirm-request-details', `${requestData.experienceTypeName} - ${requestData.requestedDate} ${requestData.requestedTime}`); goToStep('step-request-confirm'); } else { console.error(`Date request submission failed (${response.status}):`, result); showError(errorDiv, result.message || `Error ${response.status}: Ocurrió un problema al enviar la solicitud.`); submitButton.disabled = false; submitButton.textContent = 'Enviar Solicitud de Fecha'; } } catch (error) { console.error('Network or fetch error during date request:', error); showError(errorDiv, 'Error de red al enviar la solicitud. Verifica tu conexión e inténtalo de nuevo.'); submitButton.disabled = false; submitButton.textContent = 'Enviar Solicitud de Fecha'; } }
+
+
+// --- Document Ready - Initial Setup & Listeners ---
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM fully loaded and parsed");
+    showStep(currentStepId);
+
+    // --- Initialize Flatpickr ---
+    const dateInputFlatpickr = document.getElementById('request-date');
+    if (dateInputFlatpickr) {
+        try {
+            flatpickr(dateInputFlatpickr, { altInput: true, altFormat: "j F, Y", dateFormat: "Y-m-d", minDate: new Date().fp_incr(10), locale: "es", disable: [ function(date) { const day = date.getDay(); return (day >= 1 && day <= 4); } ], });
+            console.log("Flatpickr initialized for #request-date");
+        } catch(err) { console.error("Error initializing Flatpickr:", err); }
+    } else { console.warn("Date input #request-date not found for Flatpickr."); }
+
+    // --- Populate Dropdowns ---
+    console.log("Initiating dropdown population...");
+    populateDropdown('widget-oY8v', 'experiences', 'Grupal');
+    populateDropdown('widget-3vTL', 'food');
+    populateRequestExperienceTypes();
+
+    // --- Add Event Listeners ---
+    console.log("Adding event listeners...");
+    try { // Wrap listener setup
+        const addSafeListener = (id, event, handler) => { const element = document.getElementById(id); if (element) { element.addEventListener(event, handler); } else { console.warn(`Element with ID ${id} not found for event listener.`); } };
+
+        // Step q1GJ Buttons
+        addSafeListener('btn-request-other-date', 'click', () => goToStep('step-request-start'));
+        addSafeListener('btn-agenda-exclusiva', 'click', () => { goToStep('subform-scheduling'); setText('scheduling-title','Agendar Experiencia Exclusiva'); });
+        addSafeListener('btn-q1gj-continue', 'click', () => goToStep('step-bSoz'));
+        // Step request-start Buttons
+        addSafeListener('btn-request-cancel', 'click', () => goToStep('step-q1GJ'));
+        addSafeListener('btn-request-select-datetime', 'click', () => { const expType = document.getElementById('request-experience-type'); if (expType && !expType.value) { expType.classList.add('is-invalid'); alert('Por favor selecciona un tipo de experiencia.'); } else { expType?.classList.remove('is-invalid'); goToStep('step-request-select-datetime'); } });
+        // Step request-select-datetime Buttons
+        addSafeListener('btn-request-datetime-back', 'click', goBack);
+        addSafeListener('submit-request-button', 'click', submitDateRequest);
+         // Step request-confirm Buttons
+        addSafeListener('btn-request-confirm-home', 'click', () => goToStep('step-q1GJ'));
+        // Step bSoz Buttons
+        addSafeListener('btn-aZoD-add', 'click', () => goToStep('subform-group-config'));
+        addSafeListener('btn-aZoD-edit', 'click', () => goToStep('subform-group-config'));
+        addSafeListener('btn-bsoz-back', 'click', goBack);
+        addSafeListener('btn-bsoz-continue', 'click', () => goToStep('step-2sff'));
+        // Step 2sff Buttons
+        addSafeListener('btn-2sff-back', 'click', goBack);
+        addSafeListener('btn-2sff-continue', 'click', () => goToStep('step-qf5J'));
+        // Step qf5j Buttons
+        addSafeListener('btn-qf5j-back', 'click', goBack);
+        addSafeListener('btn-qf5j-continue', 'click', () => goToStep('step-checkout-placeholder'));
+        // Step checkout Buttons
+        addSafeListener('btn-checkout-back', 'click', goBack);
+        addSafeListener('submit-button', 'click', submitReservation);
+        // Step gr5a Buttons
+        addSafeListener('btn-gr5a-new-booking', 'click', () => window.location.reload());
+        // Subform Group Config Buttons
+        addSafeListener('btn-group-config-cancel', 'click', goBack);
+        addSafeListener('btn-group-config-save', 'click', () => { setText('subform-aZoD-status', 'Sí'); document.getElementById('btn-aZoD-add')?.classList.add('d-none'); document.getElementById('btn-aZoD-edit')?.classList.remove('d-none'); goBack(); updateSummary(); });
+        // Subform Scheduling Buttons
+        addSafeListener('btn-scheduling-cancel', 'click', goBack);
+        addSafeListener('btn-scheduling-confirm', 'click', () => { setText('subform-3duJ-status','Sí'); goBack(); updateSummary(); });
+
+        // --- Other Element Listeners ---
+        const exclusiveSwitch = document.getElementById('widget-grSj'); if (exclusiveSwitch) { exclusiveSwitch.addEventListener('change', () => { checkLunchParagraphs(); updateSummary(); }); }
+        const groupSizeInput = document.getElementById('widget-tZqh'); if (groupSizeInput) { groupSizeInput.addEventListener('input', () => { handleGroupSizeChange(); updateSummary(); }); }
+        const allAdultsCheckbox = document.getElementById('widget-qdCu'); if (allAdultsCheckbox) { allAdultsCheckbox.addEventListener('change', handleGroupRestrictionChange); }
+        const groupSelect = document.getElementById('widget-oY8v'); if (groupSelect) groupSelect.addEventListener('change', updateSummary);
+        const foodSelect = document.getElementById('widget-3vTL'); if (foodSelect) foodSelect.addEventListener('change', updateSummary);
+        const discountInput = document.getElementById('widget-3KPv'); if (discountInput) discountInput.addEventListener('input', updateSummary);
+        const scheduleDateInput = document.getElementById('scheduling-date'); if(scheduleDateInput) scheduleDateInput.addEventListener('change', updateSummary);
+        const scheduleTimeInput = document.getElementById('scheduling-time'); if(scheduleTimeInput) scheduleTimeInput.addEventListener('change', updateSummary);
+
+    } catch(err) { console.error("Error setting up event listeners:", err); }
+
+    // --- Initial State Checks ---
+    console.log("Running initial state checks...");
+    try {
+        checkLunchParagraphs(); handleGroupSizeChange(); handleGroupRestrictionChange(); updateSummary();
+    } catch (err) { console.error("Error running initial checks:", err); }
+    console.log("Initialization complete.");
+
+}); // End DOMContentLoaded listener
