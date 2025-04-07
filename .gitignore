@@ -143,3 +143,4 @@ dist
 .qodo/
 # Local Netlify folder
 .netlify
+.qodo

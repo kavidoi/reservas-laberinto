@@ -1,0 +1,26 @@
+/* public/css/fonts.css */
+/* Defines custom fonts */
+/* Last Updated: Monday, April 7, 2025 at 3:33:34 AM -04 Chile Time */
+
+@font-face {
+    font-family: 'Love'; /* Font name to use in CSS */
+    /* Absolute path from the site root, assuming font is in public/fonts/ */
+    src: url('/fonts/Love.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: git status # Should show functions/create-event.js as new
+git add functions/create-event.js
+git commit -m "feat: Add create-event function for date requests"
+git push origin mainswap; /* Improves perceived loading performance */
+}
+
+/* Class to apply the 'Love' font specifically to titles */
+.love-font-title {
+    font-family: 'Love', /* Use the font defined above */
+                 cursive; /* Fallback font */
+    font-size: 2.5rem;    /* Example size */
+    letter-spacing: 1.5px; /* Example spacing */
+    margin: 0 0 1rem 0;    /* Example margin */
+    /* Optional: Add color or other title-specific styles */
+    color: #616125; /* Using primary color from previous style */
+}
