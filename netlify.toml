@@ -8,17 +8,17 @@
   command = "npm install"
   # Directory containing Netlify functions relative to the base directory
   functions = "functions"
-  # Function bundling configuration
-  [functions]
-    node_bundler = "esbuild"
-    included_files = ["node_modules/airtable/**"]
-    directory = "functions"
   # Directory containing static site assets to deploy relative to the base directory
   publish = "public"
   # Environment variables for the build process itself
   [build.environment]
     # Specify the Node.js version for the build environment and functions
     NODE_VERSION = "18"
+
+# Function bundling configuration as a separate top-level section
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["node_modules/airtable/**"]
 
 # Environment variables specific only to the production context
 # Secrets like API keys should ideally be set ONLY in the Netlify UI for security
