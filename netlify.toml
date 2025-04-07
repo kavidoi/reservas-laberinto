@@ -1,51 +1,43 @@
 # netlify.toml
-# Configuration for Netlify deployment for Reservas Laberinto
-# Corrected CSP, includes all necessary settings.
-# Last Updated: Monday, April 7, 2025 at 5:52:00 PM -04 Chile Time
+# Final Configuration for Netlify deployment for Reservas Laberinto
+# Last Updated: Monday, April 7, 2025 at 6:31:00 PM -04 Chile Time
 
 [build]
-  # Installs runtime dependencies for functions
   command = "npm install"
-  # Location of serverless functions
-  functions = "functions"
-  # Directory containing static site files
+  functions = "functions" # Assumes functions are directly inside /functions/
   publish = "public"
-  # Build environment settings
   [build.environment]
-    # Specify Node.js version
     NODE_VERSION = "18"
 
 # Function bundling configuration
 [functions]
-  # Use esbuild bundler
   node_bundler = "esbuild"
-  # Explicitly include runtime dependencies to ensure they are packaged
+  # Explicitly include runtime dependencies
   included_files = [
       "node_modules/airtable/**",
       "node_modules/memory-cache/**",
       "node_modules/async-retry/**",
-      "node_modules/@sentry/aws-serverless/**"
-      # Add others if direct 'require' calls are made to them in functions
+      "node_modules/@sentry/aws-serverless/**" # Or @sentry/node if not using AWS context
   ]
 
 # Production context environment variables
 # SECRETS (API Key, Sentry DSN) MUST be set in Netlify UI, not here.
 [context.production.environment]
-  AIRTABLE_BASE_ID = "appqWloaGKCaVKck4" # Base ID (Set in UI recommended)
-  AIRTABLE_TABLE_RESERVAS = "tblJSKGb4IBeyUwyo"
-  AIRTABLE_TABLE_EXPERIENCES = "tblaBc1QhlksnV5Qb" # Note: Used for Experience Types dropdown
-  AIRTABLE_TABLE_EVENTOS = "tblJ604IExFMU3KvW"    # Note: Used for Scheduled Events dropdown
-  AIRTABLE_TABLE_FOOD = "tblz3fbgTFnqfCGi9"
-  # AIRTABLE_API_KEY = "value-set-in-netlify-ui" # Placeholder
-  # SENTRY_DSN = "value-set-in-netlify-ui"       # Placeholder
+  AIRTABLE_BASE_ID = "YOUR_BASE_ID_SET_IN_NETLIFY_UI" # Use placeholder - Set in UI
+  AIRTABLE_TABLE_RESERVAS = "tblJSKGb4IBeyUwyo"        # Main submission table
+  AIRTABLE_TABLE_EXPERIENCES = "tblaBc1QhlksnV5Qb"     # Experience Types table
+  AIRTABLE_TABLE_EVENTOS = "tblJ604IExFMU3KvW"       # Scheduled Events table
+  AIRTABLE_TABLE_FOOD = "tblz3fbgTFnqfCGi9"            # Food Options table
+  # AIRTABLE_API_KEY = "value-set-in-netlify-ui"      # Placeholder - Set in UI
+  # SENTRY_DSN = "value-set-in-netlify-ui"          # Placeholder - Set in UI
   NODE_ENV = "production"
 
 # Custom HTTP Headers
 [[headers]]
   for = "/*"
   [headers.values]
-    # Content Security Policy: Allows necessary external resources and inline styles
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://code.jquery.com; style-src 'self' https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self' *.sentry.io;"
+    # Content Security Policy: Allows self, specific CDNs, inline styles (needed by some libs potentially)
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://code.jquery.com; style-src 'self' https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self' *.sentry.io;"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
@@ -55,3 +47,4 @@
   to = "/.netlify/functions/:splat"
   status = 200 # Internal rewrite
 
+# No Netlify Build plugins currently used
