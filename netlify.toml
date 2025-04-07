@@ -1,23 +1,56 @@
+# netlify.toml
+# Configuration for Netlify deployment
+# Last Updated: Sunday, April 6, 2025 at 9:39:44 PM -04 (Vitacura, Santiago Metropolitan Region, Chile)
+
 [build]
+  # Command to run before deploying (e.g., install dependencies for functions)
   command = "npm install"
+  # Directory containing Netlify functions
   functions = "functions"
+  # Directory containing static site assets to deploy
   publish = "public"
 
+# Environment variables specific to the production context
 [context.production.environment]
+  # --- Airtable Credentials ---
   AIRTABLE_API_KEY = "@airtable_api_key_prod"
   AIRTABLE_BASE_ID = "@airtable_base_id"
-  AIRTABLE_TABLE_RESERVAS = "tblJSKGb4IBeyUwyo"
+  # Airtable Table IDs
+  AIRTABLE_TABLE_RESERVAS = "tblJSKGb4IBeyUwyo"     # Table for main submissions
+  AIRTABLE_TABLE_EXPERIENCES = "tblaBc1QhlksnV5Qb"  # Added: Table for experiences dropdown
+  AIRTABLE_TABLE_FOOD = "tblz3fbgTFnqfCGi9"         # Added: Table for food options dropdown
 
+  # --- Other Variables (Examples) ---
+  # NODE_ENV = "production"
+  # SENTRY_DSN = "YOUR_SENTRY_DSN_HERE" # Set via Netlify UI if using Sentry
+
+# --- Custom Headers ---
 [[headers]]
+  # Apply these headers to all pages
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self' https://airtable.com"
+    # Content Security Policy - Updated to allow necessary resources
+    # Allows 'self', bootstrap CDN, fillout images, sentry. Adjust as needed.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net; img-src 'self' https://images.fillout.com data:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self' *.sentry.io;"
+    # Prevents MIME type sniffing
     X-Content-Type-Options = "nosniff"
+    # Controls how much referrer info is sent
     Referrer-Policy = "strict-origin-when-cross-origin"
+    # Optional: Add other security headers like X-Frame-Options, Strict-Transport-Security etc.
 
+# --- Netlify Plugins ---
 [[plugins]]
+# Netlify's official rate limiting plugin
 package = "@netlify/plugin-rate-limit"
   [plugins.inputs]
-  paths = ["/api/*"]
-  limit = 10
-  window = 900
+    # Paths to apply rate limiting to.
+    # NOTE: This assumes Netlify routes /api/* to your functions.
+    # If you call functions via /.netlify/functions/* directly, update this path.
+    paths = ["/api/*"]
+    # Max number of requests allowed per window per client IP
+    limit = 10
+    # Time window in seconds (900s = 15 minutes)
+    window = 900
+    # Optional: Define response body/status for rate limited requests
+    # responseBody = "{\"error\":\"Too many requests\"}"
+    # responseStatus = 429
