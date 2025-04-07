@@ -97,3 +97,13 @@ select:disabled {
     opacity: 0.8;
     background-color: #e9ecef; /* Bootstrap's default disabled background */
 }
+
+
+/* Logo Styling */
+.form-logo {
+    max-height: 75px; /* Target height ~2cm */
+    max-width: 100%;  /* Prevent overflow if image is wide */
+    height: auto;     /* Maintain aspect ratio based on height */
+    width: auto;      /* Maintain aspect ratio */
+    object-fit: contain; /* Ensure image fits within bounds without distortion */
+  }
