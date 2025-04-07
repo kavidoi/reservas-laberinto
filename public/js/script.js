@@ -28,7 +28,7 @@ function calculateEndTime(startTimeHHMM, durationMinutes) {
 
         const endHour = endDate.getHours().toString().padStart(2, '0');
         const endMinute = endDate.getMinutes().toString().padStart(2, '0');
-        return `<span class="math-inline">\{endHour\}\:</span>{endMinute}`;
+        return `${endHour}:${endMinute}`;
     } catch (e) {
         console.error("Error calculating end time:", e);
         return "--:--";
@@ -206,3 +206,211 @@ document.addEventListener('DOMContentLoaded', () => {
         // Helper function for formatting Select2 options
         const formatOption = (data) => {
             if (!data.id) { return data.text; } // Placeholder
+
+            let detailsHtml = '';
+            // Format for Scheduled Events (#widget-oY8v)
+            if (data['Fecha'] && data['Hora Inicio']) {
+                const dateFormatted = data['Fecha']; // Assuming YYYY-MM-DD
+                const startTime = data['Hora Inicio'] || '';
+                const endTime = data['Hora Término'] || '';
+                const timeString = endTime ? `${startTime} - ${endTime}` : startTime;
+                const desc = data['Descripción'];
+                const descShort = (desc && typeof desc === 'string') ? (desc.substring(0, 70) + (desc.length > 70 ? '...' : '')) : '';
+                detailsHtml = `
+                    <small class="d-block text-muted">${dateFormatted} | ${timeString}</small>
+                    <small class="d-block text-muted">${descShort}</small>
+                `;
+            }
+            // Format for Experience Types (#request-experience-type)
+            else if (data['Duración'] || data['Precio'] || data['Descripción']) {
+                 const duration = data['Duración'];
+                 const price = data['Precio'];
+                 const desc = data['Descripción'];
+                 const priceFormatted = (price !== null && price !== undefined) ? `$${Number(price).toLocaleString('es-CL')}` : '';
+                 const durationText = duration ? `${duration} min` : '';
+                 const descShort = (desc && typeof desc === 'string') ? (desc.substring(0, 50) + (desc.length > 50 ? '...' : '')) : '';
+                 let detailsLine = [durationText, priceFormatted].filter(Boolean).join(' | '); // Join Duration | Price
+                 detailsHtml = `
+                    <small class="d-block text-muted">${detailsLine}</small>
+                    <small class="d-block text-muted">${descShort}</small>
+                 `;
+            }
+            // Format for Food (#widget-3vTL) - currently no details fetched
+            else {
+                 // detailsHtml = `<small class="d-block text-muted">ID: ${data.id}</small>`;
+            }
+
+            // Use jQuery to build the element (Select2 expects jQuery object or HTML string)
+             return $(`<div><strong>${data.text}</strong>${detailsHtml}</div>`);
+        };
+
+        // Initialize Main Scheduled Events Dropdown
+        $('#widget-oY8v').select2({
+            theme: "bootstrap-5",
+            placeholder: 'Selecciona evento...',
+            allowClear: true,
+            ajax: {
+                url: '/api/get-options',
+                dataType: 'json',
+                delay: 250, // wait 250ms before firing request
+                data: function (params) {
+                    return {
+                        tableType: 'scheduled_events',
+                        filterValue: 'Grupal', // Hardcoded filter
+                        searchTerm: params.term // search term for potential future backend search
+                    };
+                },
+                processResults: function (data) { // Adapt API response to Select2 format
+                    return {
+                        results: data.results // The backend now returns { results: [...] }
+                    };
+                },
+                cache: true
+            },
+            templateResult: formatOption, // How options look in the dropdown
+            templateSelection: function(data) { return data.text; }, // How selected item looks
+            escapeMarkup: function(markup) { return markup; } // Allow HTML in templates
+        }).on('change', updateSummary); // Update summary when selection changes
+
+        // Initialize Food Options Dropdown
+         $('#widget-3vTL').select2({
+            theme: "bootstrap-5",
+            placeholder: 'Selecciona comida...',
+            allowClear: true,
+             ajax: {
+                url: '/api/get-options',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return { tableType: 'food' };
+                },
+                processResults: function (data) { return { results: data.results }; },
+                cache: true
+            },
+            templateResult: formatOption, // Use same basic formatter
+            templateSelection: function(data) { return data.text; },
+            escapeMarkup: function(markup) { return markup; }
+        }).on('change', updateSummary);
+
+        // Initialize Experience Type Dropdown for Requesting Date
+        $('#request-experience-type').select2({
+            theme: "bootstrap-5",
+            placeholder: 'Selecciona tipo de experiencia...',
+            // allowClear: true, // Maybe not needed here?
+             ajax: {
+                url: '/api/get-options',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        tableType: 'experience_types',
+                        filterValue: 'Grupal' // Only show Grupal types
+                    };
+                },
+                processResults: function (data) { return { results: data.results }; },
+                cache: true
+            },
+            templateResult: formatOption, // Uses the detailed formatter
+            templateSelection: function(data) { return data.text; }, // Show only name when selected
+            escapeMarkup: function(markup) { return markup; }
+        }).on('select2:select', function(e) {
+             // Store the full selected data object when an experience type is chosen
+             selectedExperienceData = e.params.data;
+             console.log("Selected Experience Type Data:", selectedExperienceData);
+             // Trigger end time calculation if a start time is already selected
+             const selectedStartTime = document.getElementById('request-time-selected')?.value;
+             if (selectedStartTime && selectedExperienceData?.['Duración']) {
+                const endTime = calculateEndTime(selectedStartTime, selectedExperienceData['Duración']);
+                setText('calculated-end-time', endTime);
+             } else {
+                 setText('calculated-end-time', '--:--'); // Reset if no duration
+             }
+             updateSummary(); // Also update main summary if needed
+        });
+
+
+    } catch(err) { console.error("Error initializing Select2:", err); }
+
+
+    // --- Add Event Listeners ---
+    console.log("Adding event listeners...");
+    try {
+        const addSafeListener = (id, event, handler) => { /* ... */ }; // Keep helper
+
+        // --- Time Bubble Logic ---
+        const timeBubbleContainer = document.getElementById('time-bubbles-container');
+        const hiddenTimeInput = document.getElementById('request-time-selected');
+        if (timeBubbleContainer && hiddenTimeInput) {
+            timeBubbleContainer.addEventListener('click', (event) => {
+                if (event.target.classList.contains('time-bubble')) {
+                    const selectedTime = event.target.dataset.time; // Get time from data-time attribute
+
+                    // Update UI: remove active class from all, add to clicked
+                    timeBubbleContainer.querySelectorAll('.time-bubble').forEach(btn => {
+                        btn.classList.remove('active', 'btn-primary'); // Use active state, maybe style change
+                        btn.classList.add('btn-outline-primary');
+                    });
+                    event.target.classList.add('active', 'btn-primary');
+                    event.target.classList.remove('btn-outline-primary');
+
+                    // Store value
+                    hiddenTimeInput.value = selectedTime;
+                    console.log("Selected Time:", selectedTime);
+                    timeBubbleContainer.classList.remove('is-invalid-group'); // Remove validation error visual if present
+
+                    // --- Calculate and Display End Time ---
+                    if (selectedExperienceData?.['Duración']) {
+                         const duration = selectedExperienceData['Duración'];
+                         const endTime = calculateEndTime(selectedTime, duration);
+                         setText('calculated-end-time', endTime);
+                    } else {
+                        console.warn("Cannot calculate end time: Experience type or duration not selected/available.");
+                        setText('calculated-end-time', '--:--');
+                    }
+                     updateSummary(); // Update summary if needed
+                }
+            });
+        } else { console.warn("Time bubble container or hidden input not found."); }
+
+        // --- Other Button/Input Listeners ---
+        // (Add listeners using addSafeListener as before)
+        // ...
+        addSafeListener('submit-request-button', 'click', submitDateRequest);
+        addSafeListener('submit-button', 'click', submitReservation);
+        // ... Add ALL OTHER listeners from previous script...
+
+         // Link in rules text
+        addSafeListener('link-solicitar-exclusiva', 'click', (event) => {
+            event.preventDefault();
+            const exclusiveSwitch = document.getElementById('widget-grSj');
+            if (exclusiveSwitch) {
+                exclusiveSwitch.checked = true;
+                exclusiveSwitch.dispatchEvent(new Event('change')); // Trigger listener
+            }
+            goToStep('step-q1GJ');
+        });
+
+        // Input listeners for summary updates etc.
+        const exclusiveSwitch = document.getElementById('widget-grSj'); if (exclusiveSwitch) { exclusiveSwitch.addEventListener('change', () => { checkLunchParagraphs(); updateSummary(); }); }
+        const groupSizeInput = document.getElementById('widget-tZqh'); if (groupSizeInput) { groupSizeInput.addEventListener('input', debounce(() => { handleGroupSizeChange(); updateSummary(); }, 300)); }
+        const allAdultsCheckbox = document.getElementById('widget-qdCu'); if (allAdultsCheckbox) { allAdultsCheckbox.addEventListener('change', handleGroupRestrictionChange); }
+        // Note: Select2 change events added during initialization above
+        // const groupSelect = document.getElementById('widget-oY8v'); if (groupSelect) groupSelect.addEventListener('change', updateSummary); // Covered by Select2 init
+        // const foodSelect = document.getElementById('widget-3vTL'); if (foodSelect) foodSelect.addEventListener('change', updateSummary); // Covered by Select2 init
+        const discountInput = document.getElementById('widget-3KPv'); if (discountInput) discountInput.addEventListener('input', updateSummary);
+        const scheduleDateInput = document.getElementById('scheduling-date'); if(scheduleDateInput) scheduleDateInput.addEventListener('change', updateSummary);
+        const scheduleTimeInput = document.getElementById('scheduling-time'); if(scheduleTimeInput) scheduleTimeInput.addEventListener('change', updateSummary);
+        const requestDateFlatpickr = document.getElementById('request-date'); // Flatpickr triggers 'change' on its hidden input
+        if(requestDateFlatpickr) requestDateFlatpickr._flatpickr.config.onChange.push(updateSummary); // Hook into flatpickr change if needed
+
+
+    } catch(err) { console.error("Error setting up event listeners:", err); }
+
+    // --- Initial State Checks ---
+    console.log("Running initial state checks...");
+    try {
+        checkLunchParagraphs(); handleGroupSizeChange(); handleGroupRestrictionChange(); updateSummary();
+    } catch (err) { console.error("Error running initial checks:", err); }
+    console.log("Initialization complete.");
+
+}); // End DOMContentLoaded listener

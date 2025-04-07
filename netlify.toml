@@ -1,36 +1,57 @@
 # netlify.toml
+# Configuration for Netlify deployment for Reservas Laberinto
+# Corrected CSP, includes all necessary settings.
+# Last Updated: Monday, April 7, 2025 at 5:52:00 PM -04 Chile Time
 
 [build]
+  # Installs runtime dependencies for functions
   command = "npm install"
+  # Location of serverless functions
   functions = "functions"
+  # Directory containing static site files
   publish = "public"
+  # Build environment settings
   [build.environment]
+    # Specify Node.js version
     NODE_VERSION = "18"
 
+# Function bundling configuration
 [functions]
+  # Use esbuild bundler
   node_bundler = "esbuild"
+  # Explicitly include runtime dependencies to ensure they are packaged
   included_files = [
       "node_modules/airtable/**",
       "node_modules/memory-cache/**",
       "node_modules/async-retry/**",
       "node_modules/@sentry/aws-serverless/**"
+      # Add others if direct 'require' calls are made to them in functions
   ]
 
+# Production context environment variables
+# SECRETS (API Key, Sentry DSN) MUST be set in Netlify UI, not here.
 [context.production.environment]
+  AIRTABLE_BASE_ID = "appqWloaGKCaVKck4" # Base ID (Set in UI recommended)
   AIRTABLE_TABLE_RESERVAS = "tblJSKGb4IBeyUwyo"
-  AIRTABLE_TABLE_EXPERIENCES = "tblJ604IExFMU3KvW"
+  AIRTABLE_TABLE_EXPERIENCES = "tblaBc1QhlksnV5Qb" # Note: Used for Experience Types dropdown
+  AIRTABLE_TABLE_EVENTOS = "tblJ604IExFMU3KvW"    # Note: Used for Scheduled Events dropdown
   AIRTABLE_TABLE_FOOD = "tblz3fbgTFnqfCGi9"
-  # SET AIRTABLE_API_KEY and SENTRY_DSN in Netlify UI
+  # AIRTABLE_API_KEY = "value-set-in-netlify-ui" # Placeholder
+  # SENTRY_DSN = "value-set-in-netlify-ui"       # Placeholder
+  NODE_ENV = "production"
 
+# Custom HTTP Headers
 [[headers]]
   for = "/*"
   [headers.values]
-    # Content Security Policy - Removed npmcdn.com
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self' *.sentry.io;"
+    # Content Security Policy: Allows necessary external resources and inline styles
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://code.jquery.com; style-src 'self' https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self' *.sentry.io;"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
+# API Rewrite Rule
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
-  status = 200
+  status = 200 # Internal rewrite
+
