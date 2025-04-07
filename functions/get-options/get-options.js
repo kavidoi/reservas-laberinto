@@ -1,22 +1,22 @@
 // functions/get-options/get-options.js
 // Fetches records from specified Airtable tables to populate dropdowns.
-// Using verified Table IDs and Field Names, including updated 'Modalidad' filter field.
-// Last Updated: Monday, April 7, 2025 at 2:42:04 AM -04 (Vitacura, Santiago Metropolitan Region, Chile)
+// Filters experiences by Modalidad='Grupal' AND Estado Evento='futuro'.
+// Last Updated: Monday, April 7, 2025 at 2:48:10 AM -04 (Vitacura, Santiago Metropolitan Region, Chile)
 
 const Airtable = require('airtable');
 
 // --- Configuration ---
-// Load Airtable credentials securely from environment variables
 const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID } = process.env;
 
 // --- Table Configurations ---
-// Mapping using user-verified Table IDs and Field Names
 const TABLE_CONFIG = {
     'experiences': {
         tableId: 'tblJ604IExFMU3KvW',       // Verified Experiences Table ID
         displayField: 'Evento',          // Verified Display Field
-        filterField: 'Modalidad',        // CORRECTED Filter Field (was 'Grupal/Privada')
-        defaultFilterValue: 'Grupal'     // Value within 'Modalidad' field to filter by
+        filterField: 'Modalidad',        // Verified Filter Field for Grupal/Privada
+        statusField: 'Estado Evento',    // Field for filtering by status
+        defaultFilterValue: 'Grupal',    // Value for Modalidad filter
+        statusFilterValue: 'futuro'      // Value for Estado Evento filter
     },
     'food': {
         tableId: 'tblz3fbgTFnqfCGi9',       // Verified Food Items Table ID
@@ -27,12 +27,8 @@ const TABLE_CONFIG = {
 // Basic check for essential environment variables
 if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID) {
     console.error("FATAL: Missing required Airtable environment variables (API Key or Base ID).");
-    module.exports.handler = async () => ({
-        statusCode: 500,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: "Server configuration error." })
-    });
-    return; // Stop initialization
+    module.exports.handler = async () => ({ statusCode: 500, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: "Server configuration error." }) });
+    return;
 }
 
 // Initialize Airtable client
@@ -40,92 +36,77 @@ const base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
 
 // --- Serverless Function Handler ---
 exports.handler = async (event, context) => {
-    // Only allow GET requests
     if (event.httpMethod !== 'GET') {
-        return {
-            statusCode: 405, // Method Not Allowed
-            headers: { 'Allow': 'GET', "Content-Type": "application/json" },
-            body: JSON.stringify({ message: 'Method Not Allowed. Please use GET.' })
-        };
+        return { statusCode: 405, headers: { 'Allow': 'GET', "Content-Type": "application/json" }, body: JSON.stringify({ message: 'Method Not Allowed. Please use GET.' }) };
     }
 
-    // Get table type and optional filter from query parameters
     const tableType = event.queryStringParameters?.tableType;
-    const filterValue = event.queryStringParameters?.filterValue; // e.g., 'Grupal'
+    // Allow overriding Modalidad filter via query param if needed in future
+    const filterValue = event.queryStringParameters?.filterValue;
 
-    // Validate tableType parameter
     if (!tableType || !TABLE_CONFIG[tableType]) {
-        return {
-             statusCode: 400, // Bad Request
-             headers: { "Content-Type": "application/json" },
-             body: JSON.stringify({ message: `Bad Request: Invalid or missing 'tableType'. Valid types: ${Object.keys(TABLE_CONFIG).join(', ')}` })
-        };
+        return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: `Bad Request: Invalid or missing 'tableType'. Valid types: ${Object.keys(TABLE_CONFIG).join(', ')}` }) };
     }
 
     const config = TABLE_CONFIG[tableType];
-    // Check if config is valid
     if (!config.tableId || !config.displayField) {
          console.error(`Configuration error: Missing tableId or displayField for tableType '${tableType}'`);
          return { statusCode: 500, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: "Server configuration error." }) };
     }
     const table = base(config.tableId);
-
-    // Determine which fields to retrieve from Airtable
     const fieldsToFetch = [config.displayField];
 
     // Prepare Airtable select options
     const selectOptions = {
         fields: fieldsToFetch,
-        // Sort options alphabetically by the display name
         sort: [{ field: config.displayField, direction: 'asc' }],
-        maxRecords: 200, // Limit records just in case
+        maxRecords: 200,
     };
 
-    // Apply filter if configured
-    const effectiveFilterValue = filterValue || config.defaultFilterValue;
-    // Check if filterField is defined in config before attempting to filter
-    if (config.filterField && effectiveFilterValue) {
-        // Use the filterField name from config (now 'Modalidad')
-        selectOptions.filterByFormula = `{${config.filterField}} = '${effectiveFilterValue}'`;
-        console.log(`Workspaceing from ${config.tableId} with filter: ${selectOptions.filterByFormula}`);
+    // Apply filter(s)
+    if (tableType === 'experiences') {
+        const modalidadFilter = filterValue || config.defaultFilterValue;
+        const statusFilter = config.statusFilterValue;
+        // Ensure both field names and values are defined before creating formula
+        if (config.filterField && modalidadFilter && config.statusField && statusFilter) {
+            // Construct AND formula
+            // Assumes both Modalidad and Estado Evento are text/select fields
+            selectOptions.filterByFormula = `AND({${config.filterField}} = '${modalidadFilter}', {${config.statusField}} = '${statusFilter}')`;
+            console.log(`Workspaceing from ${config.tableId} with filter: ${selectOptions.filterByFormula}`);
+        } else {
+            console.warn(`Skipping experience filter: Missing config (filterField: ${config.filterField}, statusField: ${config.statusField}) or values.`);
+            // Decide if you want NO filter or maybe just the Modalidad filter if status is missing
+            // Example: Just Modalidad filter if status info is missing
+            // if (config.filterField && modalidadFilter) {
+            //     selectOptions.filterByFormula = `{${config.filterField}} = '${modalidadFilter}'`;
+            //     console.log(`Workspaceing from ${config.tableId} with filter: ${selectOptions.filterByFormula}`);
+            // } else {
+            //     console.log(`Workspaceing options from ${config.tableId} without specific filter.`);
+            // }
+            console.log(`Workspaceing ALL options from ${config.tableId} because filter config is incomplete.`); // Current behaviour if config missing
+        }
     } else {
+         // Apply other filters for other table types if needed here
          console.log(`Workspaceing options from ${config.tableId} without specific filter.`);
     }
 
 
     try {
-        // Fetch all records matching the select options
         const records = await table.select(selectOptions).all();
-
-        // Map records to the format needed by the frontend: { id: recordId, name: displayFieldValue }
         const options = records.map(record => ({
             id: record.id,
-            // Use the displayField from config, provide fallback
             name: record.get(config.displayField) || `Unnamed (ID: ${record.id})`
         }));
-
         console.log(`Successfully fetched ${options.length} options for type '${tableType}'.`);
-
-        // Return the options array as JSON
-        return {
-            statusCode: 200,
-            headers: {
-                "Content-Type": "application/json",
-                // "Cache-Control": "public, max-age=300" // Optional Caching
-            },
-            body: JSON.stringify(options),
-        };
+        return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify(options) };
 
     } catch (error) {
         console.error(`Error fetching data from Airtable table ${config.tableId} for type '${tableType}':`, error);
-        // TODO: Consider sending errors to Sentry if it's configured
-
-        // Return a detailed error response
         return {
             statusCode: error.statusCode || 500,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                message: `Error fetching options for '${tableType}'. Check field names ('${config.displayField}', filter: '${config.filterField}') and table ID ('${config.tableId}').`,
+                message: `Error fetching options for '${tableType}'. Check config.`,
                 error: process.env.NODE_ENV !== 'production' ? (error.message || "Internal Server Error") : "An internal error occurred fetching options."
             }),
         };
